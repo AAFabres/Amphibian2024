@@ -20,29 +20,27 @@
 source /apps/profiles/modules_asax.sh.dyn
 module load sra
 module load fastqc/0.10.1
-module load multiqc
-module load trimmomatic/0.39
-module load hisat2/2.2.0
-module load stringtie/2.2.1
-module load gcc/9.4.0
-module load python/3.10.8-zimemtc
-module load samtools
-module load bcftools
-module load gffread
+#module load multiqc
+#module load trimmomatic/0.39
+#module load hisat2/2.2.0
+#module load stringtie/2.2.1
+#module load gcc/9.4.0
+#module load python/3.10.8-zimemtc
+#module load samtools
+#module load bcftools
+#module load gffread
 #module load gffcompare
 
-#  Set the stack size to unlimited
+# Set the stack size to unlimited
 ulimit -s unlimited
 
 # Turn echo on so all commands are echoed in the output log
 set -x
 
-
 ##########  Define variables and make directories
 ## Replace the numbers in the brackets with Your specific information
   ## make variable for your ASC ID so the directories are automatically made in YOUR directory
 MyID=aubclsc0324          ## Example: MyID=aubtss
-
 
 WD=/scratch/$MyID/RNAseqFrog            ## Example:/scratch/$MyID/PracticeRNAseq  
 DD=$WD/RawData
@@ -76,19 +74,18 @@ cd ${DD}
 			## 	-I 	Append read id after spot id as 'accession.spot.readid' on defline.
 		## splits the files into R1 and R2 (forward reads, reverse reads)
 
-## These samples are from Bioproject PRJNA437447. An experiment on Daphnia pulex, 5 samples on ad lib feed, 5 samples on caloric restriction diet
-## https://www.ncbi.nlm.nih.gov/bioproject?LinkName=sra_bioproject&from_uid=5206312
-## For class only do the 6 that you are assigned, delete the other 4 from this list
+## These samples are from Bioproject PRJDB12187. An experiment on Buergeria otai, 3 samples heat stress (DRX306282, DRX306284 & DRX306285), 3 samples control (DRX306283, DRX306286, DRX306287)
+## https://www.ncbi.nlm.nih.gov/bioproject/PRJDB12187
 
 vdb-config --interactive
 #fastq-dump -F --split-files SRR6819023
 
-fasterq-dump -F --split-files SAMD00400406
-fasterq-dump -F --split-files SAMD00400407
-fasterq-dump -F --split-files SAMD00400408
-fasterq-dump -F --split-files SAMD00400409
-fasterq-dump -F --split-files SAMD00400410
-fasterq-dump -F --split-files SAMD00400411
+fasterq-dump -F --split-files DRX306282
+fasterq-dump -F --split-files DRX306283
+fasterq-dump -F --split-files DRX306284
+fasterq-dump -F --split-files DRX306285
+fasterq-dump -F --split-files DRX306286
+fasterq-dump -F --split-files DRX306287
 
 exit
 
