@@ -87,13 +87,13 @@ fasterq-dump -F --split-files DRX306285
 fasterq-dump -F --split-files DRX306286
 fasterq-dump -F --split-files DRX306287
 
-exit
 
 ##### Extra ####
 ## If you are downloading data from a sequencing company instead of NCBI, using wget for example, then calculate the md5sum values of all the files in the folder (./*), and read into a text file.
 ## then you can compare the values in this file with the ones provided by the company.
-#md5sum ./* > md5sum.txt
+md5sum ./* > md5sum.txt
 
+exit
 ##### Extra ####
 ## If you data comes with multiple R1 and R2 files per individual. You can contatenate them together using "cat" before running FASTQC
 ## see examples below for one file. You will probably want to use a loop to process through all the files.
