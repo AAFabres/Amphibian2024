@@ -21,15 +21,15 @@ source /apps/profiles/modules_asax.sh.dyn
 module load sra
 module load fastqc/0.10.1
 module load multiqc
-#module load trimmomatic/0.39
-#module load hisat2/2.2.0
-#module load stringtie/2.2.1
-#module load gcc/9.4.0
-#module load python/3.10.8-zimemtc
-#module load samtools
-#module load bcftools
-#module load gffread
-#module load gffcompare
+module load trimmomatic/0.39
+module load hisat2/2.2.0
+module load stringtie/2.2.1
+module load gcc/9.4.0
+module load python/3.10.8-zimemtc
+module load samtools
+module load bcftools
+module load gffread
+module load gffcompare
 
 # Set the stack size to unlimited
 ulimit -s unlimited
@@ -54,7 +54,7 @@ REFD=$WD/XenopusRefGenome          ## Example:/scratch/$MyID/PracticeRNAseq/Daph
 MAPD=$WD/Map_HiSat2           			## Example:/scratch/$MyID/PracticeRNAseq/Map_HiSat2      #
 COUNTSD=/$WD/Counts_StringTie       ## Example:/scratch/$MyID/PracticeRNAseq/Counts_StringTie
 RESULTSD=/home/$MyID/PracticeRNAseq_Full/Counts_H_S_2024      ## Example:/home/aubtss/PracticeRNAseq/Counts_H_S
-REF=DaphniaPulex_RefGenome_PA42_v3.0                  ## This is what the "easy name" will be for the genome reference
+REF=aRanTem1.1                  ## This is what the "easy name" will be for the genome reference
 
 
 
@@ -77,21 +77,21 @@ cd ${DD}
 ## These samples are from Bioproject PRJDB12187. An experiment on Buergeria otai, 3 samples heat stress (DRR316901, DRR316903 & DRR316904), 3 samples control (DRR316902, DRR316905 & DRR316906)
 ## https://www.ncbi.nlm.nih.gov/bioproject/PRJDB12187
 
-vdb-config --interactive
-#fastq-dump -F --split-files SRR6819023
+#vdb-config --interactive
+#fastq-dump -F --split-files DRR316901
 
-fasterq-dump --split-files DRR316901
-fasterq-dump --split-files DRR316902
-fasterq-dump --split-files DRR316903
-fasterq-dump --split-files DRR316904
-fasterq-dump --split-files DRR316905
-fasterq-dump --split-files DRR316906
+#fasterq-dump --split-files DRR316901
+#fasterq-dump --split-files DRR316902
+#fasterq-dump --split-files DRR316903
+#fasterq-dump --split-files DRR316904
+#fasterq-dump --split-files DRR316905
+#fasterq-dump --split-files DRR316906
 
 
 ##### Extra ####
 ## If you are downloading data from a sequencing company instead of NCBI, using wget for example, then calculate the md5sum values of all the files in the folder (./*), and read into a text file.
 ## then you can compare the values in this file with the ones provided by the company.
-md5sum ./* > md5sum.txt
+#md5sum ./* > md5sum.txt
 
 
 ##### Extra ####
@@ -115,15 +115,15 @@ multiqc ${WD}/${RDQ}
 tar cvzf ${RDQ}.tar.gz  ${WD}/${RDQ}/*
 ## when finished use scp or rsync to bring the tarballed .gz results file to your computer and open the .html file to evaluate the quality of your raw data.
 
-exit
+
 #######
 ################****************** Step 2  Cleaning the data with Trimmomatic ###################################
 #######
 
 
 ## make the directories to hold the Cleaned Data files, and the directory to hold the results for assessing quality of the cleaned data.
-mkdir ${CD}
-mkdir ${WD}/${PCQ}
+mkdir -p ${CD}
+mkdir -p ${WD}/${PCQ}
 
 
 ## Move to Raw Data Directory
@@ -139,7 +139,7 @@ ls | grep ".fastq" |cut -d "_" -f 1 | sort | uniq > list
 
 ### Copy over the list of Sequencing Adapters that we want Trimmomatic to look for (along with its default adapters)
         ## CHECK: You may need to edit this path for the file that is in the class_shared directory from your account.
-cp /home/${MyID}/class_shared/AdaptersToTrim_All.fa . 
+scp /home/${MyID}/class_shared/AdaptersToTrim_All.fa . 
 
 ### Run a while loop to process through the names in the list and Trim them with the Trimmomatic Code
 while read i
@@ -193,25 +193,35 @@ mkdir -p $RESULTSD
 ##################  Prepare the Reference Index for mapping with HiSat2   #############################
 cd $REFD
 ### Copy the reference genome (.fasta) and the annotation file (.gff3) to this REFD directory
-cp /home/${MyID}/class_shared/references/DaphniaPulex/PA42/${REF}.fasta .
-cp /home/${MyID}/class_shared/references/DaphniaPulex/PA42/${REF}.gff3 .
+#cp /home/${MyID}/class_shared/references/DaphniaPulex/PA42/${REF}.fasta .
+#cp /home/${MyID}/class_shared/references/DaphniaPulex/PA42/${REF}.gff3 .
 
+# Download each file individually without zipping them
+curl -o aRanTem1.1.fasta "https://api.ncbi.nlm.nih.gov/datasets/v2alpha/genome/accession/GCF_905171775.1/download?include_annotation_type=GENOME_FASTA"
+curl -o aRanTem1.1.gff3 "https://api.ncbi.nlm.nih.gov/datasets/v2alpha/genome/accession/GCF_905171775.1/download?include_annotation_type=GENOME_GFF3"
+#curl -o rna.fasta "https://api.ncbi.nlm.nih.gov/datasets/v2alpha/genome/accession/GCF_905171775.1/download?include_annotation_type=RNA_FASTA"
+#curl -o cds.fasta "https://api.ncbi.nlm.nih.gov/datasets/v2alpha/genome/accession/GCF_905171775.1/download?include_annotation_type=CDS_FASTA"
+#curl -o prot.fasta "https://api.ncbi.nlm.nih.gov/datasets/v2alpha/genome/accession/GCF_905171775.1/download?include_annotation_type=PROT_FASTA"
+#curl -o sequence_report.json "https://api.ncbi.nlm.nih.gov/datasets/v2alpha/genome/accession/GCF_905171775.1/download?include_annotation_type=SEQUENCE_REPORT"
+
+
+exit
 ###  Identify exons and splice sites on the reference genome
 gffread ${REF}.gff3 -T -o ${REF}.gtf               ## gffread converts the annotation file from .gff3 to .gft formate for HiSat2 to use.
 hisat2_extract_splice_sites.py ${REF}.gtf > ${REF}.ss
 hisat2_extract_exons.py ${REF}.gtf > ${REF}.exon
 
 #### Create a HISAT2 index for the reference genome. NOTE every mapping program will need to build a its own index.
-hisat2-build --ss ${REF}.ss --exon ${REF}.exon ${REF}.fasta DpulPA42_index
+hisat2-build --ss ${REF}.ss --exon ${REF}.exon ${REF}.fasta aRanTem1.1_index
 
 ########################  Map and Count the Data using HiSAT2 and StringTie  ########################
 
 # Move to the data directory
 cd ${CD}  #### This is where our clean paired reads are located.
 
-## Create list of fastq files to map.    Example file format of your cleaned reads file names: SRR629651_1_paired.fastq SRR629651_2_paired.fastq
+## Create list of fastq files to map.    Example file format of your cleaned reads file names: DRR316901_1_paired.fastq DRR316901_2_paired.fastq
 ## grab all fastq files, cut on the underscore, use only the first of the cuts, sort, use unique put in list
-ls | grep ".fastq" |cut -d "_" -f 1| sort | uniq > list    #should list Example: SRR629651
+ls | grep ".fastq" |cut -d "_" -f 1| sort | uniq > list    #should list Example: DRR316901
 
 ## Move to the directory for mapping
 cd ${MAPD}
@@ -225,7 +235,7 @@ do
   ## HiSat2 is the mapping program
   ##  -p indicates number of processors, --dta reports alignments for StringTie --rf is the read orientation
    hisat2 -p 6 --dta --phred33       \
-    -x "${REFD}"/DpulPA42_index       \
+    -x "${REFD}"/aRanTem1.1_index       \
     -1 "${CD}"/"$i"_1_paired.fastq  -2 "${CD}"/"$i"_2_paired.fastq      \
     -S "$i".sam
 
