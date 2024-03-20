@@ -80,12 +80,12 @@ cd ${DD}
 vdb-config --interactive
 #fastq-dump -F --split-files SRR6819023
 
-fasterq-dump -F --split-files DRX306282
-fasterq-dump -F --split-files DRX306283
-fasterq-dump -F --split-files DRX306284
-fasterq-dump -F --split-files DRX306285
-fasterq-dump -F --split-files DRX306286
-fasterq-dump -F --split-files DRX306287
+fasterq-dump --split-files DRX306282
+fasterq-dump --split-files DRX306283
+fasterq-dump --split-files DRX306284
+fasterq-dump --split-files DRX306285
+fasterq-dump --split-files DRX306286
+fasterq-dump --split-files DRX306287
 
 
 ##### Extra ####
