@@ -20,7 +20,7 @@
 source /apps/profiles/modules_asax.sh.dyn
 module load sra
 module load fastqc/0.10.1
-#module load multiqc
+module load multiqc
 #module load trimmomatic/0.39
 #module load hisat2/2.2.0
 #module load stringtie/2.2.1
@@ -93,7 +93,7 @@ fasterq-dump --split-files DRR316906
 ## then you can compare the values in this file with the ones provided by the company.
 md5sum ./* > md5sum.txt
 
-exit
+
 ##### Extra ####
 ## If you data comes with multiple R1 and R2 files per individual. You can contatenate them together using "cat" before running FASTQC
 ## see examples below for one file. You will probably want to use a loop to process through all the files.
@@ -115,7 +115,7 @@ multiqc ${WD}/${RDQ}
 tar cvzf ${RDQ}.tar.gz  ${WD}/${RDQ}/*
 ## when finished use scp or rsync to bring the tarballed .gz results file to your computer and open the .html file to evaluate the quality of your raw data.
 
-
+exit
 #######
 ################****************** Step 2  Cleaning the data with Trimmomatic ###################################
 #######
