@@ -74,18 +74,18 @@ cd ${DD}
 			## 	-I 	Append read id after spot id as 'accession.spot.readid' on defline.
 		## splits the files into R1 and R2 (forward reads, reverse reads)
 
-## These samples are from Bioproject PRJDB12187. An experiment on Buergeria otai, 3 samples heat stress (DRX306282, DRX306284 & DRX306285), 3 samples control (DRX306283, DRX306286, DRX306287)
+## These samples are from Bioproject PRJDB12187. An experiment on Buergeria otai, 3 samples heat stress (DRR316901, DRR316903 & DRR316904), 3 samples control (DRR316902, DRR316905 & DRR316906)
 ## https://www.ncbi.nlm.nih.gov/bioproject/PRJDB12187
 
 vdb-config --interactive
 #fastq-dump -F --split-files SRR6819023
 
-fasterq-dump --split-files DRX306282
-fasterq-dump --split-files DRX306283
-fasterq-dump --split-files DRX306284
-fasterq-dump --split-files DRX306285
-fasterq-dump --split-files DRX306286
-fasterq-dump --split-files DRX306287
+fasterq-dump --split-files DRR316901
+fasterq-dump --split-files DRR316902
+fasterq-dump --split-files DRR316903
+fasterq-dump --split-files DRR316904
+fasterq-dump --split-files DRR316905
+fasterq-dump --split-files DRR316906
 
 
 ##### Extra ####
