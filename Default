@@ -188,26 +188,26 @@ cd ${DD}
 
 
 ## Make the directories and all subdirectories defined by the variables above
-mkdir -p $REFD
-mkdir -p $MAPD
-mkdir -p $COUNTSD
-mkdir -p $RESULTSD
+#mkdir -p $REFD
+#mkdir -p $MAPD
+#mkdir -p $COUNTSD
+#mkdir -p $RESULTSD
 
 ##################  Prepare the Reference Index for mapping with HiSat2   #############################
-cd $REFD
+#cd $REFD
 ### Copy the reference genome (.fasta) and the annotation file (.gff3) to this REFD directory
-cp /home/${MyID}/Xenopus/${REF}.fasta .
-cp /home/${MyID}/Xenopus/${REF}.gff3 .
+#cp /home/${MyID}/Xenopus/${REF}.fasta .
+#cp /home/${MyID}/Xenopus/${REF}.gff3 .
 
 ###  Identify exons and splice sites on the reference genome
-gffread ${REF}.gff3 -T -o ${REF}.gtf               ## gffread converts the annotation file from .gff3 to .gft formate for HiSat2 to use.
-hisat2_extract_splice_sites.py ${REF}.gtf > ${REF}.ss
-hisat2_extract_exons.py ${REF}.gtf > ${REF}.exon
+#gffread ${REF}.gff3 -T -o ${REF}.gtf               ## gffread converts the annotation file from .gff3 to .gft formate for HiSat2 to use.
+#hisat2_extract_splice_sites.py ${REF}.gtf > ${REF}.ss
+#hisat2_extract_exons.py ${REF}.gtf > ${REF}.exon
 
 #### Create a HISAT2 index for the reference genome. NOTE every mapping program will need to build a its own index.
-hisat2-build --ss ${REF}.ss --exon ${REF}.exon ${REF}.fasta XenopusLaevis_index
+#hisat2-build --ss ${REF}.ss --exon ${REF}.exon ${REF}.fasta XenopusLaevis_index
 
-exit
+
 
 ########################  Map and Count the Data using HiSAT2 and StringTie  ########################
 
@@ -230,8 +230,8 @@ do
   ## HiSat2 is the mapping program
   ##  -p indicates number of processors, --dta reports alignments for StringTie --rf is the read orientation
    hisat2 -p 6 --dta --phred33       \
-    -x "${REFD}"/XenopusLaevis_index       \
-    -1 "${CD}"/"$i"_1_paired.fastq  -2 "${CD}"/"$i"_2_paired.fastq      \
+    -x ${REFD}/XenopusLaevis_index       \
+    -1 ${CD}/"$i"_1_paired.fastq  -2 ${CD}/"$i"_2_paired.fastq      \
     -S "$i".sam
 
     ### view: convert the SAM file into a BAM file  -bS: BAM is the binary format corresponding to the SAM text format.
@@ -258,7 +258,7 @@ do
 
 done<list
 
-
+exit
 #####################  Copy Results to home Directory.  These will be the files you want to bring back to your computer.
 ### these are your stats files from Samtools
 cp *.txt ${RESULTSD}
