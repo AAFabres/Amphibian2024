@@ -210,8 +210,8 @@ hisat2-build --ss ${REF}.ss --exon ${REF}.exon ${REF}.fasta Xenopus_index
 ########################  Map and Count the Data using HiSAT2 and StringTie  ########################
 
 # Move to the data directory
-## Option1: NO TRIMMING so Data will be our RAWDATA in foler ${DD}
-cd ${DD}  #### This is where our Raw paired reads are located.
+## Option1: Deafult option should go to cleandata folder
+cd ${CD}  #### This is where our clean paired reads are located.
 
 ## Create list of fastq files to map.    Example file format of your cleaned reads file names: DRR316901_1_paired.fastq DRR316901_2_paired.fastq
 ## grab all fastq files, cut on the underscore, use only the first of the cuts, sort, use unique put in list
@@ -221,7 +221,7 @@ ls | grep ".fastq" |cut -d "_" -f 1| sort | uniq > list    #should list Example:
 cd ${MAPD}
 
 ## move the list of unique ids from the original files to map
-mv ${DD}/list  . 
+mv ${CD}/list  . 
 
 ## process the samples in the list, one by one using a while loop
 while read i;
@@ -230,7 +230,7 @@ do
   ##  -p indicates number of processors, --dta reports alignments for StringTie --rf is the read orientation
    hisat2 -p 6 --dta --phred33       \
     -x "${REFD}"/Xenopus_index       \
-    -1 "${DD}"/"$i"_1.fastq  -2 "${CD}"/"$i"_2.fastq      \
+    -1 "${CD}"/"$i"_1.fastq  -2 "${CD}"/"$i"_2.fastq      \
     -S "$i".sam
 
     ### view: convert the SAM file into a BAM file  -bS: BAM is the binary format corresponding to the SAM text format.
