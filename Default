@@ -78,21 +78,21 @@ cd ${DD}
 ## These samples are from Bioproject PRJDB12187. An experiment on Buergeria otai, 3 samples heat stress (DRR316901, DRR316903 & DRR316904), 3 samples control (DRR316902, DRR316905 & DRR316906)
 ## https://www.ncbi.nlm.nih.gov/bioproject/PRJDB12187
 
-vdb-config --interactive
+#vdb-config --interactive
 #fastq-dump -F --split-files DRR316901
 
-fasterq-dump --split-files DRR316901
-fasterq-dump --split-files DRR316902
-fasterq-dump --split-files DRR316903
-fasterq-dump --split-files DRR316904
-fasterq-dump --split-files DRR316905
-fasterq-dump --split-files DRR316906
+#fasterq-dump --split-files DRR316901
+#fasterq-dump --split-files DRR316902
+#fasterq-dump --split-files DRR316903
+#fasterq-dump --split-files DRR316904
+#fasterq-dump --split-files DRR316905
+#fasterq-dump --split-files DRR316906
 
 
 ##### Extra ####
 ## If you are downloading data from a sequencing company instead of NCBI, using wget for example, then calculate the md5sum values of all the files in the folder (./*), and read into a text file.
 ## then you can compare the values in this file with the ones provided by the company.
-md5sum ./* > md5sum.txt
+#md5sum ./* > md5sum.txt
 
 
 ##### Extra ####
@@ -121,16 +121,16 @@ tar cvzf ${RDQ}.tar.gz  ${WD}/${RDQ}/*
 ################****************** Step 2  Cleaning the data with Trimmomatic ###################################
 #######
 ######Fabres
-###Option1: NO trimming and Cleaning
+######Option1: default
 
 
 ## make the directories to hold the Cleaned Data files, and the directory to hold the results for assessing quality of the cleaned data.
-#mkdir -p ${CD}
-#mkdir -p ${WD}/${PCQ}
+mkdir -p ${CD}
+mkdir -p ${WD}/${PCQ}
 
 
 ## Move to Raw Data Directory
-#cd ${DD}
+cd ${DD}
 
 ### Make list of file names to Trim
         ## this line is a set of piped (|) commands
@@ -138,23 +138,23 @@ tar cvzf ${RDQ}.tar.gz  ${WD}/${RDQ}/*
         ## grep means grab all the file names that end in ".fastq", 
         ## cut that name into elements every where you see "_" and keep the first element (-f 1)
         ## sort the list and keep only the unique names and put it into a file named "list"
-#ls | grep ".fastq" |cut -d "_" -f 1 | sort | uniq > list
+ls | grep ".fastq" |cut -d "_" -f 1 | sort | uniq > list
 
 ### Copy over the list of Sequencing Adapters that we want Trimmomatic to look for (along with its default adapters)
         ## CHECK: You may need to edit this path for the file that is in the class_shared directory from your account.
-#scp /home/${MyID}/class_shared/AdaptersToTrim_All.fa . 
+scp /home/${MyID}/class_shared/AdaptersToTrim_All.fa . 
 
 ### Run a while loop to process through the names in the list and Trim them with the Trimmomatic Code
-#while read i
-#do
+while read i
+do
 
         ### Run Trimmomatic in paired end (PE) mode with 6 threads using phred 33 quality score format. 
         ## STOP & DISCUSS: Check out the trimmomatic documentation to understand the parameters in line 77
-#	       java -jar /apps/x86-64/apps/spack_0.19.1/spack/opt/spack/linux-rocky8-zen3/gcc-11.3.0/trimmomatic-0.39-iu723m2xenra563gozbob6ansjnxmnfp/bin/trimmomatic-0.39.jar   \
-#					PE -threads 6 -phred33 \
- #       	"$i"_1.fastq "$i"_2.fastq  \
-  #     	 ${CD}/"$i"_1_paired.fastq ${CD}/"$i"_1_unpaired.fastq  ${CD}/"$i"_2_paired.fastq ${CD}/"$i"_2_unpaired.fastq \
-   #    	 ILLUMINACLIP:AdaptersToTrim_All.fa:2:35:10 HEADCROP:10 LEADING:30 TRAILING:30 SLIDINGWINDOW:6:30 MINLEN:36
+	       java -jar /apps/x86-64/apps/spack_0.19.1/spack/opt/spack/linux-rocky8-zen3/gcc-11.3.0/trimmomatic-0.39-iu723m2xenra563gozbob6ansjnxmnfp/bin/trimmomatic-0.39.jar   \
+					PE -threads 6 -phred33 \
+        	"$i"_1.fastq "$i"_2.fastq  \
+       	 ${CD}/"$i"_1_paired.fastq ${CD}/"$i"_1_unpaired.fastq  ${CD}/"$i"_2_paired.fastq ${CD}/"$i"_2_unpaired.fastq \
+       	 ILLUMINACLIP:AdaptersToTrim_All.fa:2:35:10 HEADCROP:10 LEADING:30 TRAILING:30 SLIDINGWINDOW:6:30 MINLEN:36
         
                 ## Trim read for quality when quality drops below Q30 and remove sequences shorter than 36 bp
                 ## PE for paired end phred-score-type  R1-Infile   R2-Infile  R1-Paired-outfile R1-unpaired-outfile R-Paired-outfile R2-unpaired-outfile  Trimming paramenter
@@ -166,20 +166,20 @@ tar cvzf ${RDQ}.tar.gz  ${WD}/${RDQ}/*
 	## FastQC: run on each of the data files that have 'All' to check the quality of the data
 	## The output from this analysis is a folder of results and a zipped file of results
 
-#fastqc ${CD}/"$i"_1_paired.fastq --outdir=${WD}/${PCQ}
-#fastqc ${CD}/"$i"_2_paired.fastq --outdir=${WD}/${PCQ}
+fastqc ${CD}/"$i"_1_paired.fastq --outdir=${WD}/${PCQ}
+fastqc ${CD}/"$i"_2_paired.fastq --outdir=${WD}/${PCQ}
 
 
-#done<list			# This is the end of the loop
+done<list			# This is the end of the loop
 
 ################## Run MultiQC to summarize the fastqc results
 ### move to the directory with the cleaned data
-#cd ${WD}/${PCQ}
-#multiqc ${WD}/${PCQ}
+cd ${WD}/${PCQ}
+multiqc ${WD}/${PCQ}
 
 ########################  Now compress your results files from the Quality Assessment by FastQC 
 #######  Tarball the directory containing the FASTQC results so we can easily bring it back to our computer to evaluate.
-#tar cvzf ${PCQ}.tar.gz ${WD}/${PCQ}/*
+tar cvzf ${PCQ}.tar.gz ${WD}/${PCQ}/*
 
 
 #######
@@ -196,8 +196,8 @@ mkdir -p $RESULTSD
 ##################  Prepare the Reference Index for mapping with HiSat2   #############################
 cd $REFD
 ### Copy the reference genome (.fasta) and the annotation file (.gff3) to this REFD directory
-#cp /home/${MyID}/class_shared/references/DaphniaPulex/PA42/${REF}.fasta .
-#cp /home/${MyID}/class_shared/references/DaphniaPulex/PA42/${REF}.gff3 .
+cp /home/${MyID}/Xenopus/${REF}.fasta .
+cp /home/${MyID}/Xenopus/${REF}.gff3 .
 
 ###  Identify exons and splice sites on the reference genome
 gffread ${REF}.gff3 -T -o ${REF}.gtf               ## gffread converts the annotation file from .gff3 to .gft formate for HiSat2 to use.
@@ -205,7 +205,7 @@ hisat2_extract_splice_sites.py ${REF}.gtf > ${REF}.ss
 hisat2_extract_exons.py ${REF}.gtf > ${REF}.exon
 
 #### Create a HISAT2 index for the reference genome. NOTE every mapping program will need to build a its own index.
-hisat2-build --ss ${REF}.ss --exon ${REF}.exon ${REF}.fasta Xenopus_laevis_v10.1_index
+hisat2-build --ss ${REF}.ss --exon ${REF}.exon ${REF}.fasta Xenopus_index
 
 ########################  Map and Count the Data using HiSAT2 and StringTie  ########################
 
@@ -229,7 +229,7 @@ do
   ## HiSat2 is the mapping program
   ##  -p indicates number of processors, --dta reports alignments for StringTie --rf is the read orientation
    hisat2 -p 6 --dta --phred33       \
-    -x "${REFD}"/Xenopus_laevis_v10.1_index       \
+    -x "${REFD}"/Xenopus_index       \
     -1 "${DD}"/"$i"_1.fastq  -2 "${CD}"/"$i"_2.fastq      \
     -S "$i".sam
 
