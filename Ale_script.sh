@@ -50,7 +50,7 @@ adapters=AdaptersToTrim_All.fa  ## This is a fasta file that has a list of adapt
 				## were made to search for the correct adapters for your project
 CD=$WD/CleanData            				## Example:/scratch/$MyID/PracticeRNAseq/CleanData   #   *** This is where the cleaned paired files are located from the last script
 PCQ=PostCleanQuality
-REFD=$WD/XenopusRefGenome          ## Example:/scratch/$MyID/PracticeRNAseq/DaphniaRefGenome    # this directory contains the indexed reference genome for the garter snake
+REFD=$WD/RanaRefGenome          ## Example:/scratch/$MyID/PracticeRNAseq/DaphniaRefGenome    # this directory contains the indexed reference genome for the garter snake
 MAPD=$WD/Map_HiSat2           			## Example:/scratch/$MyID/PracticeRNAseq/Map_HiSat2      #
 COUNTSD=/$WD/Counts_StringTie       ## Example:/scratch/$MyID/PracticeRNAseq/Counts_StringTie
 RESULTSD=/home/$MyID/PracticeRNAseq_Full/Counts_H_S_2024      ## Example:/home/aubtss/PracticeRNAseq/Counts_H_S
@@ -63,7 +63,7 @@ REF=aRanTem1.1                  ## This is what the "easy name" will be for the 
 mkdir -p ${WD}
 mkdir -p ${DD}
 ## move to the Data Directory
-cd ${DD}
+#cd ${DD}
 
 ##########  Download data files from NCBI: SRA using the Run IDs
   ### from SRA use the SRA tool kit - see NCBI website https://www.ncbi.nlm.nih.gov/sra/docs/sradownload/
@@ -127,7 +127,7 @@ cd ${DD}
 
 
 ## Move to Raw Data Directory
-cd ${DD}
+#cd ${DD}
 
 ### Make list of file names to Trim
         ## this line is a set of piped (|) commands
@@ -135,23 +135,23 @@ cd ${DD}
         ## grep means grab all the file names that end in ".fastq", 
         ## cut that name into elements every where you see "_" and keep the first element (-f 1)
         ## sort the list and keep only the unique names and put it into a file named "list"
-ls | grep ".fastq" |cut -d "_" -f 1 | sort | uniq > list
+#ls | grep ".fastq" |cut -d "_" -f 1 | sort | uniq > list
 
 ### Copy over the list of Sequencing Adapters that we want Trimmomatic to look for (along with its default adapters)
         ## CHECK: You may need to edit this path for the file that is in the class_shared directory from your account.
-scp /home/${MyID}/class_shared/AdaptersToTrim_All.fa . 
+#scp /home/${MyID}/class_shared/AdaptersToTrim_All.fa . 
 
 ### Run a while loop to process through the names in the list and Trim them with the Trimmomatic Code
-while read i
-do
+#while read i
+#do
 
         ### Run Trimmomatic in paired end (PE) mode with 6 threads using phred 33 quality score format. 
         ## STOP & DISCUSS: Check out the trimmomatic documentation to understand the parameters in line 77
-	       java -jar /apps/x86-64/apps/spack_0.19.1/spack/opt/spack/linux-rocky8-zen3/gcc-11.3.0/trimmomatic-0.39-iu723m2xenra563gozbob6ansjnxmnfp/bin/trimmomatic-0.39.jar   \
-					PE -threads 6 -phred33 \
-        	"$i"_1.fastq "$i"_2.fastq  \
-       	 ${CD}/"$i"_1_paired.fastq ${CD}/"$i"_1_unpaired.fastq  ${CD}/"$i"_2_paired.fastq ${CD}/"$i"_2_unpaired.fastq \
-       	 ILLUMINACLIP:AdaptersToTrim_All.fa:2:35:10 HEADCROP:10 LEADING:30 TRAILING:30 SLIDINGWINDOW:6:30 MINLEN:36
+#	       java -jar /apps/x86-64/apps/spack_0.19.1/spack/opt/spack/linux-rocky8-zen3/gcc-11.3.0/trimmomatic-0.39-iu723m2xenra563gozbob6ansjnxmnfp/bin/trimmomatic-0.39.jar   \
+#					PE -threads 6 -phred33 \
+ #       	"$i"_1.fastq "$i"_2.fastq  \
+  #     	 ${CD}/"$i"_1_paired.fastq ${CD}/"$i"_1_unpaired.fastq  ${CD}/"$i"_2_paired.fastq ${CD}/"$i"_2_unpaired.fastq \
+   #    	 ILLUMINACLIP:AdaptersToTrim_All.fa:2:35:10 HEADCROP:10 LEADING:30 TRAILING:30 SLIDINGWINDOW:6:30 MINLEN:36
         
                 ## Trim read for quality when quality drops below Q30 and remove sequences shorter than 36 bp
                 ## PE for paired end phred-score-type  R1-Infile   R2-Infile  R1-Paired-outfile R1-unpaired-outfile R-Paired-outfile R2-unpaired-outfile  Trimming paramenter
@@ -163,20 +163,20 @@ do
 	## FastQC: run on each of the data files that have 'All' to check the quality of the data
 	## The output from this analysis is a folder of results and a zipped file of results
 
-fastqc ${CD}/"$i"_1_paired.fastq --outdir=${WD}/${PCQ}
-fastqc ${CD}/"$i"_2_paired.fastq --outdir=${WD}/${PCQ}
+#fastqc ${CD}/"$i"_1_paired.fastq --outdir=${WD}/${PCQ}
+#fastqc ${CD}/"$i"_2_paired.fastq --outdir=${WD}/${PCQ}
 
 
-done<list			# This is the end of the loop
+#done<list			# This is the end of the loop
 
 ################## Run MultiQC to summarize the fastqc results
 ### move to the directory with the cleaned data
-cd ${WD}/${PCQ}
-multiqc ${WD}/${PCQ}
+#cd ${WD}/${PCQ}
+#multiqc ${WD}/${PCQ}
 
 ########################  Now compress your results files from the Quality Assessment by FastQC 
 #######  Tarball the directory containing the FASTQC results so we can easily bring it back to our computer to evaluate.
-tar cvzf ${PCQ}.tar.gz ${WD}/${PCQ}/*
+#tar cvzf ${PCQ}.tar.gz ${WD}/${PCQ}/*
 
 
 #######
