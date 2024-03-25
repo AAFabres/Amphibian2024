@@ -29,6 +29,7 @@ module load python/3.10.8-zimemtc
 module load samtools
 module load bcftools
 module load gffread
+##Module gffcompare seems not to load and I think we dont use it
 #module load gffcompare
 
 # Set the stack size to unlimited
@@ -63,7 +64,7 @@ REF=Xenopus_laevis_v10.1                  ## This is what the "easy name" will b
 mkdir -p ${WD}
 mkdir -p ${DD}
 ## move to the Data Directory
-#cd ${DD}
+cd ${DD}
 
 ##########  Download data files from NCBI: SRA using the Run IDs
   ### from SRA use the SRA tool kit - see NCBI website https://www.ncbi.nlm.nih.gov/sra/docs/sradownload/
@@ -77,21 +78,21 @@ mkdir -p ${DD}
 ## These samples are from Bioproject PRJDB12187. An experiment on Buergeria otai, 3 samples heat stress (DRR316901, DRR316903 & DRR316904), 3 samples control (DRR316902, DRR316905 & DRR316906)
 ## https://www.ncbi.nlm.nih.gov/bioproject/PRJDB12187
 
-#vdb-config --interactive
+vdb-config --interactive
 #fastq-dump -F --split-files DRR316901
 
-#fasterq-dump --split-files DRR316901
-#fasterq-dump --split-files DRR316902
-#fasterq-dump --split-files DRR316903
-#fasterq-dump --split-files DRR316904
-#fasterq-dump --split-files DRR316905
-#fasterq-dump --split-files DRR316906
+fasterq-dump --split-files DRR316901
+fasterq-dump --split-files DRR316902
+fasterq-dump --split-files DRR316903
+fasterq-dump --split-files DRR316904
+fasterq-dump --split-files DRR316905
+fasterq-dump --split-files DRR316906
 
 
 ##### Extra ####
 ## If you are downloading data from a sequencing company instead of NCBI, using wget for example, then calculate the md5sum values of all the files in the folder (./*), and read into a text file.
 ## then you can compare the values in this file with the ones provided by the company.
-#md5sum ./* > md5sum.txt
+md5sum ./* > md5sum.txt
 
 
 ##### Extra ####
@@ -104,15 +105,15 @@ mkdir -p ${DD}
 ############## FASTQC to assess quality of the sequence data
 ## FastQC: run on each of the data files that have 'All' to check the quality of the data
 ## The output from this analysis is a folder of results and a zipped file of results and a .html file for each sample
-#mkdir -p ${WD}/${RDQ}
-#fastqc *.fastq --outdir=${WD}/${RDQ}
+mkdir -p ${WD}/${RDQ}
+fastqc *.fastq --outdir=${WD}/${RDQ}
 
 ##### MultiQC to summarized the fastqc results!
-#cd ${WD}/${RDQ}
-#multiqc ${WD}/${RDQ}
+cd ${WD}/${RDQ}
+multiqc ${WD}/${RDQ}
 
 #######  Tarball the directory containing the FASTQC and MultiQC results so we can easily bring it back to our computer to evaluate.
-#tar cvzf ${RDQ}.tar.gz  ${WD}/${RDQ}/*
+tar cvzf ${RDQ}.tar.gz  ${WD}/${RDQ}/*
 ## when finished use scp or rsync to bring the tarballed .gz results file to your computer and open the .html file to evaluate the quality of your raw data.
 
 
@@ -204,12 +205,13 @@ hisat2_extract_splice_sites.py ${REF}.gtf > ${REF}.ss
 hisat2_extract_exons.py ${REF}.gtf > ${REF}.exon
 
 #### Create a HISAT2 index for the reference genome. NOTE every mapping program will need to build a its own index.
-hisat2-build --ss ${REF}.ss --exon ${REF}.exon ${REF}.fasta aRanTem1.1_index
+hisat2-build --ss ${REF}.ss --exon ${REF}.exon ${REF}.fasta Xenopus_laevis_v10.1_index
 
 ########################  Map and Count the Data using HiSAT2 and StringTie  ########################
 
 # Move to the data directory
-cd ${CD}  #### This is where our clean paired reads are located.
+## Option1: NO TRIMMING so Data will be our RAWDATA in foler ${DD}
+cd ${DD}  #### This is where our Raw paired reads are located.
 
 ## Create list of fastq files to map.    Example file format of your cleaned reads file names: DRR316901_1_paired.fastq DRR316901_2_paired.fastq
 ## grab all fastq files, cut on the underscore, use only the first of the cuts, sort, use unique put in list
@@ -219,7 +221,7 @@ ls | grep ".fastq" |cut -d "_" -f 1| sort | uniq > list    #should list Example:
 cd ${MAPD}
 
 ## move the list of unique ids from the original files to map
-mv ${CD}/list  . 
+mv ${DD}/list  . 
 
 ## process the samples in the list, one by one using a while loop
 while read i;
@@ -227,13 +229,13 @@ do
   ## HiSat2 is the mapping program
   ##  -p indicates number of processors, --dta reports alignments for StringTie --rf is the read orientation
    hisat2 -p 6 --dta --phred33       \
-    -x "${REFD}"/aRanTem1.1_index       \
-    -1 "${CD}"/"$i"_1_paired.fastq  -2 "${CD}"/"$i"_2_paired.fastq      \
+    -x "${REFD}"/Xenopus_laevis_v10.1_index       \
+    -1 "${DD}"/"$i"_1.fastq  -2 "${CD}"/"$i"_2.fastq      \
     -S "$i".sam
 
     ### view: convert the SAM file into a BAM file  -bS: BAM is the binary format corresponding to the SAM text format.
     ### sort: convert the BAM file to a sorted BAM file.
-    ### Example Input: SRR629651.sam; Output: SRR629651_sorted.bam
+    ### Example Input: DRR316901.sam; Output: DRR316901_sorted.bam
   samtools view -@ 6 -bS "$i".sam > "$i".bam  
 
     ###  This is sorting the bam, using 6 threads, and producing a .bam file that includes the word 'sorted' in the name
