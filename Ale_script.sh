@@ -104,15 +104,15 @@ cd ${DD}
 ############## FASTQC to assess quality of the sequence data
 ## FastQC: run on each of the data files that have 'All' to check the quality of the data
 ## The output from this analysis is a folder of results and a zipped file of results and a .html file for each sample
-mkdir -p ${WD}/${RDQ}
-fastqc *.fastq --outdir=${WD}/${RDQ}
+#mkdir -p ${WD}/${RDQ}
+#fastqc *.fastq --outdir=${WD}/${RDQ}
 
 ##### MultiQC to summarized the fastqc results!
-cd ${WD}/${RDQ}
-multiqc ${WD}/${RDQ}
+#cd ${WD}/${RDQ}
+#multiqc ${WD}/${RDQ}
 
 #######  Tarball the directory containing the FASTQC and MultiQC results so we can easily bring it back to our computer to evaluate.
-tar cvzf ${RDQ}.tar.gz  ${WD}/${RDQ}/*
+#tar cvzf ${RDQ}.tar.gz  ${WD}/${RDQ}/*
 ## when finished use scp or rsync to bring the tarballed .gz results file to your computer and open the .html file to evaluate the quality of your raw data.
 
 
@@ -122,8 +122,8 @@ tar cvzf ${RDQ}.tar.gz  ${WD}/${RDQ}/*
 
 
 ## make the directories to hold the Cleaned Data files, and the directory to hold the results for assessing quality of the cleaned data.
-mkdir -p ${CD}
-mkdir -p ${WD}/${PCQ}
+#mkdir -p ${CD}
+#mkdir -p ${WD}/${PCQ}
 
 
 ## Move to Raw Data Directory
@@ -196,16 +196,6 @@ cd $REFD
 #cp /home/${MyID}/class_shared/references/DaphniaPulex/PA42/${REF}.fasta .
 #cp /home/${MyID}/class_shared/references/DaphniaPulex/PA42/${REF}.gff3 .
 
-# Download each file individually without zipping them
-curl -o aRanTem1.1.fasta "https://api.ncbi.nlm.nih.gov/datasets/v2alpha/genome/accession/GCF_905171775.1/download?include_annotation_type=GENOME_FASTA"
-curl -o aRanTem1.1.gff3 "https://api.ncbi.nlm.nih.gov/datasets/v2alpha/genome/accession/GCF_905171775.1/download?include_annotation_type=GENOME_GFF3"
-#curl -o rna.fasta "https://api.ncbi.nlm.nih.gov/datasets/v2alpha/genome/accession/GCF_905171775.1/download?include_annotation_type=RNA_FASTA"
-#curl -o cds.fasta "https://api.ncbi.nlm.nih.gov/datasets/v2alpha/genome/accession/GCF_905171775.1/download?include_annotation_type=CDS_FASTA"
-#curl -o prot.fasta "https://api.ncbi.nlm.nih.gov/datasets/v2alpha/genome/accession/GCF_905171775.1/download?include_annotation_type=PROT_FASTA"
-#curl -o sequence_report.json "https://api.ncbi.nlm.nih.gov/datasets/v2alpha/genome/accession/GCF_905171775.1/download?include_annotation_type=SEQUENCE_REPORT"
-
-
-exit
 ###  Identify exons and splice sites on the reference genome
 gffread ${REF}.gff3 -T -o ${REF}.gtf               ## gffread converts the annotation file from .gff3 to .gft formate for HiSat2 to use.
 hisat2_extract_splice_sites.py ${REF}.gtf > ${REF}.ss
