@@ -29,7 +29,7 @@ module load python/3.10.8-zimemtc
 module load samtools
 module load bcftools
 module load gffread
-#module load gffcompare
+module load gffcompare
 
 #  Set the stack size to unlimited
 ulimit -s unlimited
@@ -76,22 +76,20 @@ cd ${DD}
 			## 	-I 	Append read id after spot id as 'accession.spot.readid' on defline.
 		## splits the files into R1 and R2 (forward reads, reverse reads)
 
-## These samples are from Bioproject PRJNA313213. An experiment on Xenopus_laevis, 
-## https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_017654675.1/
+## These samples are from Bioproject PRJDB12187. An experiment on Buergeria otai, 3 samples heat stress (DRR316901, DRR316903 & DRR316904), 3 samples control (DRR316902, DRR316905 & DRR316906)## https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_017654675.1/
+## https://www.ncbi.nlm.nih.gov/bioproject/PRJDB12187
 
 
 vdb-config --interactive
-#fastq-dump -F --split-files SRR6819023
+#fastq-dump -F --split-files DRR316901
 
-fasterq-dump SRR3210978
-fasterq-dump SRR3210977
-fasterq-dump SRR3210976
-fasterq-dump SRR3210975
-fasterq-dump SRR3210974
-fasterq-dump SRR3210973
-fasterq-dump SRR3210972
-fasterq-dump SRR3210971
-fasterq-dump SRR3210959
+
+fasterq-dump --split-files DRR316901
+fasterq-dump --split-files DRR316902
+fasterq-dump --split-files DRR316903
+fasterq-dump --split-files DRR316904
+fasterq-dump --split-files DRR316905
+fasterq-dump --split-files DRR316906
 
 
 ##### Extra ####
@@ -198,8 +196,8 @@ mkdir -p $RESULTSD
 ##################  Prepare the Reference Index for mapping with HiSat2   #############################
 cd $REFD
 ### Copy the reference genome (.fasta) and the annotation file (.gff3) to this REFD directory
-cp /scratch/AMPHIBIAN24/reference_data/ncbi_dataset/data/GCF_017654675.1/GCF_017654675.1_Xenopus_laevis_v10.1 .
-cp /scratch/AMPHIBIAN24/reference_data/ncbi_dataset/data/GCF_017654675.1/genomic.gtf .
+cp /scratch/AMPHIBIAN24/reference_data/ncbi_dataset/data/GCF_017654675.1/GCF_017654675.1_Xenopus_laevis_v10.1.fna .
+cp /scratch/AMPHIBIAN24/reference_data/ncbi_dataset/data/GCF_017654675.1/genomic.gff3 .
 
 ###  Identify exons and splice sites on the reference genome
 gffread ${REF}.gff3 -T -o ${REF}.gtf               ## gffread converts the annotation file from .gff3 to .gft formate for HiSat2 to use.
@@ -207,7 +205,7 @@ hisat2_extract_splice_sites.py ${REF}.gtf > ${REF}.ss
 hisat2_extract_exons.py ${REF}.gtf > ${REF}.exon
 
 #### Create a HISAT2 index for the reference genome. NOTE every mapping program will need to build a its own index.
-hisat2-build --ss ${REF}.ss --exon ${REF}.exon ${REF}.fasta DpulPA42_index
+hisat2-build --ss ${REF}.ss --exon ${REF}.exon ${REF}.fna XenopusLaevis_index
 
 ########################  Map and Count the Data using HiSAT2 and StringTie  ########################
 
@@ -230,7 +228,7 @@ do
   ## HiSat2 is the mapping program
   ##  -p indicates number of processors, --dta reports alignments for StringTie --rf is the read orientation
    hisat2 -p 6 --dta --phred33       \
-    -x "${REFD}"/DpulPA42_index       \
+    -x "${REFD}"/XenopusLaevis_index        \
     -1 "${CD}"/"$i"_1_paired.fastq  -2 "${CD}"/"$i"_2_paired.fastq      \
     -S "$i".sam
 
