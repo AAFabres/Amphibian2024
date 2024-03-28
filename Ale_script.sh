@@ -42,7 +42,7 @@ set -x
   ## make variable for your ASC ID so the directories are automatically made in YOUR directory
 MyID=aubclsc0324          ## Example: MyID=aubtss
 
-WD=/scratch/$MyID/RNAseqFrog            ## Example:/scratch/$MyID/PracticeRNAseq  
+WD=/scratch/$MyID/RNAseqFrog1            ## Example:/scratch/$MyID/PracticeRNAseq  
 DD=$WD/RawData
 RDQ=RawDataQuality
 adapters=AdaptersToTrim_All.fa  ## This is a fasta file that has a list of adapters commonly used in NGS sequencing. 
