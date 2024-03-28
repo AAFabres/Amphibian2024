@@ -18,10 +18,10 @@
 
 ########## Load Modules
 source /apps/profiles/modules_asax.sh.dyn
-module load sra
-module load fastqc/0.10.1
-module load multiqc
-module load trimmomatic/0.39
+#module load sra
+#module load fastqc/0.10.1
+#module load multiqc
+#module load trimmomatic/0.39
 module load hisat2/2.2.0
 module load stringtie/2.2.1
 module load gcc/9.4.0
@@ -60,8 +60,8 @@ REF=aRanTem1.1                  ## This is what the "easy name" will be for the 
 
 ##  make the directories in SCRATCH for holding the raw data 
 ## -p tells it to make any upper level directories that are not there.
-mkdir -p ${WD}
-mkdir -p ${DD}
+#mkdir -p ${WD}
+#mkdir -p ${DD}
 ## move to the Data Directory
 #cd ${DD}
 
@@ -197,12 +197,13 @@ cd $REFD
 #cp /home/${MyID}/class_shared/references/DaphniaPulex/PA42/${REF}.gff3 .
 
 ###  Identify exons and splice sites on the reference genome
-gffread ${REF}.gff3 -T -o ${REF}.gtf               ## gffread converts the annotation file from .gff3 to .gft formate for HiSat2 to use.
-hisat2_extract_splice_sites.py ${REF}.gtf > ${REF}.ss
-hisat2_extract_exons.py ${REF}.gtf > ${REF}.exon
+#gffread ${REF}.gff3 -T -o ${REF}.gtf               ## gffread converts the annotation file from .gff3 to .gft formate for HiSat2 to use.
+#hisat2_extract_splice_sites.py ${REF}.gtf > ${REF}.ss
+#hisat2_extract_exons.py ${REF}.gtf > ${REF}.exon
 
 #### Create a HISAT2 index for the reference genome. NOTE every mapping program will need to build a its own index.
-hisat2-build --ss ${REF}.ss --exon ${REF}.exon ${REF}.fasta aRanTem1.1_index
+hisat2-build --ss ${REF}.ss --exon ${REF}.exon ${REF}.fasta Rana_index
+exit
 
 ########################  Map and Count the Data using HiSAT2 and StringTie  ########################
 
@@ -225,7 +226,7 @@ do
   ## HiSat2 is the mapping program
   ##  -p indicates number of processors, --dta reports alignments for StringTie --rf is the read orientation
    hisat2 -p 6 --dta --phred33       \
-    -x "${REFD}"/aRanTem1.1_index       \
+    -x "${REFD}"/Rana_index       \
     -1 "${CD}"/"$i"_1_paired.fastq  -2 "${CD}"/"$i"_2_paired.fastq      \
     -S "$i".sam
 
