@@ -18,10 +18,10 @@
 
 ########## Load Modules
 source /apps/profiles/modules_asax.sh.dyn
-module load sra
-module load fastqc/0.10.1
-module load multiqc
-module load trimmomatic/0.39
+#module load sra
+#module load fastqc/0.10.1
+#module load multiqc
+#module load trimmomatic/0.39
 module load hisat2/2.2.0
 module load stringtie/2.2.1
 module load gcc/9.4.0
@@ -62,10 +62,10 @@ REF=Xenopus_laevis_v10.1                  ## This is what the "easy name" will b
 
 ##  make the directories in SCRATCH for holding the raw data 
 ## -p tells it to make any upper level directories that are not there.
-mkdir -p ${WD}
-mkdir -p ${DD}
+#mkdir -p ${WD}
+#mkdir -p ${DD}
 ## move to the Data Directory
-cd ${DD}
+#cd ${DD}
 
 ##########  Download data files from NCBI: SRA using the Run IDs
   ### from SRA use the SRA tool kit - see NCBI website https://www.ncbi.nlm.nih.gov/sra/docs/sradownload/
@@ -80,22 +80,22 @@ cd ${DD}
 ## https://www.ncbi.nlm.nih.gov/bioproject?LinkName=sra_bioproject&from_uid=5206312
 ## For class only do the 6 that you are assigned, delete the other 4 from this list
 
-vdb-config --interactive
+#vdb-config --interactive
 #fastq-dump -F --split-files DRR316901
 
-fasterq-dump DRR316901
-fasterq-dump DRR316902
-fasterq-dump DRR316903
-fasterq-dump DRR316904
-fasterq-dump DRR316905
-fasterq-dump DRR316906
+#fasterq-dump DRR316901
+#fasterq-dump DRR316902
+#fasterq-dump DRR316903
+#fasterq-dump DRR316904
+#fasterq-dump DRR316905
+#fasterq-dump DRR316906
 
 
 
 ##### Extra ####
 ## If you are downloading data from a sequencing company instead of NCBI, using wget for example, then calculate the md5sum values of all the files in the folder (./*), and read into a text file.
 ## then you can compare the values in this file with the ones provided by the company.
-md5sum ./* > md5sum.txt
+#md5sum ./* > md5sum.txt
 
 ##### Extra ####
 ## If you data comes with multiple R1 and R2 files per individual. You can contatenate them together using "cat" before running FASTQC
@@ -107,15 +107,15 @@ md5sum ./* > md5sum.txt
 ############## FASTQC to assess quality of the sequence data
 ## FastQC: run on each of the data files that have 'All' to check the quality of the data
 ## The output from this analysis is a folder of results and a zipped file of results and a .html file for each sample
-mkdir ${WD}/${RDQ}
-fastqc *.fastq --outdir=${WD}/${RDQ}
+#mkdir ${WD}/${RDQ}
+#fastqc *.fastq --outdir=${WD}/${RDQ}
 
 ##### MultiQC to summarized the fastqc results!
-cd ${WD}/${RDQ}
-multiqc ${WD}/${RDQ}
+#cd ${WD}/${RDQ}
+#multiqc ${WD}/${RDQ}
 
 #######  Tarball the directory containing the FASTQC and MultiQC results so we can easily bring it back to our computer to evaluate.
-tar cvzf ${RDQ}.tar.gz  ${WD}/${RDQ}/*
+#tar cvzf ${RDQ}.tar.gz  ${WD}/${RDQ}/*
 ## when finished use scp or rsync to bring the tarballed .gz results file to your computer and open the .html file to evaluate the quality of your raw data.
 
 
@@ -125,12 +125,12 @@ tar cvzf ${RDQ}.tar.gz  ${WD}/${RDQ}/*
 
 
 ## make the directories to hold the Cleaned Data files, and the directory to hold the results for assessing quality of the cleaned data.
-mkdir ${CD}
-mkdir ${WD}/${PCQ}
+#mkdir ${CD}
+#mkdir ${WD}/${PCQ}
 
 
 ## Move to Raw Data Directory
-cd ${DD}
+#cd ${DD}
 
 ### Make list of file names to Trim
         ## this line is a set of piped (|) commands
@@ -138,24 +138,24 @@ cd ${DD}
         ## grep means grab all the file names that end in ".fastq", 
         ## cut that name into elements every where you see "_" and keep the first element (-f 1)
         ## sort the list and keep only the unique names and put it into a file named "list"
-ls | grep ".fastq" |cut -d "_" -f 1 | sort | uniq > list
+#ls | grep ".fastq" |cut -d "_" -f 1 | sort | uniq > list
 
 ### Copy over the list of Sequencing Adapters that we want Trimmomatic to look for (along with its default adapters)
         ## CHECK: You may need to edit this path for the file that is in the class_shared directory from your account.
-cp /home/${MyID}/class_shared/AdaptersToTrim_All.fa . 
+#cp /home/${MyID}/class_shared/AdaptersToTrim_All.fa . 
 
 ### Run a while loop to process through the names in the list and Trim them with the Trimmomatic Code
-while read i
-do
+#while read i
+#do
 
         ### Run Trimmomatic in paired end (PE) mode with 6 threads using phred 33 quality score format. 
         ## STOP & DISCUSS: Check out the trimmomatic documentation to understand the parameters in line 77
-	       java -jar /apps/x86-64/apps/spack_0.19.1/spack/opt/spack/linux-rocky8-zen3/gcc-11.3.0/trimmomatic-0.39-iu723m2xenra563gozbob6ansjnxmnfp/bin/trimmomatic-0.39.jar   \
-					PE -threads 6 -phred33 \
-        	"$i"_1.fastq "$i"_2.fastq  \
-       	 ${CD}/"$i"_1_paired.fastq ${CD}/"$i"_1_unpaired.fastq  ${CD}/"$i"_2_paired.fastq ${CD}/"$i"_2_unpaired.fastq \
-       	 ILLUMINACLIP:AdaptersToTrim_All.fa:2:35:10 HEADCROP:10 LEADING:30 TRAILING:30 SLIDINGWINDOW:6:30 MINLEN:36
-        
+#	       java -jar /apps/x86-64/apps/spack_0.19.1/spack/opt/spack/linux-rocky8-zen3/gcc-11.3.0/trimmomatic-0.39-iu723m2xenra563gozbob6ansjnxmnfp/bin/trimmomatic-0.39.jar   \
+#					PE -threads 6 -phred33 \
+#        	"$i"_1.fastq "$i"_2.fastq  \
+#       	 ${CD}/"$i"_1_paired.fastq ${CD}/"$i"_1_unpaired.fastq  ${CD}/"$i"_2_paired.fastq ${CD}/"$i"_2_unpaired.fastq \
+#       	 ILLUMINACLIP:AdaptersToTrim_All.fa:2:35:10 HEADCROP:10 LEADING:30 TRAILING:30 SLIDINGWINDOW:6:30 MINLEN:36
+#        
                 ## Trim read for quality when quality drops below Q30 and remove sequences shorter than 36 bp
                 ## PE for paired end phred-score-type  R1-Infile   R2-Infile  R1-Paired-outfile R1-unpaired-outfile R-Paired-outfile R2-unpaired-outfile  Trimming paramenter
                 ## MINLEN:<length> #length: Specifies the minimum length of reads to be kept.
@@ -166,20 +166,20 @@ do
 	## FastQC: run on each of the data files that have 'All' to check the quality of the data
 	## The output from this analysis is a folder of results and a zipped file of results
 
-fastqc ${CD}/"$i"_1_paired.fastq --outdir=${WD}/${PCQ}
-fastqc ${CD}/"$i"_2_paired.fastq --outdir=${WD}/${PCQ}
+#fastqc ${CD}/"$i"_1_paired.fastq --outdir=${WD}/${PCQ}
+#fastqc ${CD}/"$i"_2_paired.fastq --outdir=${WD}/${PCQ}
 
 
-done<list			# This is the end of the loop
+#done<list			# This is the end of the loop
 
 ################## Run MultiQC to summarize the fastqc results
 ### move to the directory with the cleaned data
-cd ${WD}/${PCQ}
-multiqc ${WD}/${PCQ}
+#cd ${WD}/${PCQ}
+#multiqc ${WD}/${PCQ}
 
 ########################  Now compress your results files from the Quality Assessment by FastQC 
 #######  Tarball the directory containing the FASTQC results so we can easily bring it back to our computer to evaluate.
-tar cvzf ${PCQ}.tar.gz ${WD}/${PCQ}/*
+#tar cvzf ${PCQ}.tar.gz ${WD}/${PCQ}/*
 
 
 #######
@@ -188,16 +188,16 @@ tar cvzf ${PCQ}.tar.gz ${WD}/${PCQ}/*
 
 
 ## Make the directories and all subdirectories defined by the variables above
-mkdir -p $REFD
-mkdir -p $MAPD
-mkdir -p $COUNTSD
-mkdir -p $RESULTSD
+#mkdir -p $REFD
+#mkdir -p $MAPD
+#mkdir -p $COUNTSD
+#mkdir -p $RESULTSD
 
 ##################  Prepare the Reference Index for mapping with HiSat2   #############################
 cd $REFD
 ### Copy the reference genome (.fasta) and the annotation file (.gff3) to this REFD directory
-#scp /home/${MyID}/Xenopus/${REF}.fna .
-#scp /home/${MyID}/Xenopus/${REF}.gtf .
+scp /home/${MyID}/Xenopus/${REF}.fna .
+scp /home/${MyID}/Xenopus/${REF}.gtf .
 
 ###  Identify exons and splice sites on the reference genome
 #gffread ${REF}.gff3 -T -o ${REF}.gtf               ## gffread converts the annotation file from .gff3 to .gft formate for HiSat2 to use.
