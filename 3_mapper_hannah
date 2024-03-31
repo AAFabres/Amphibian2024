@@ -52,14 +52,15 @@ set -x
   ## Replace the [#] with paths to define these variable
 MyID=aubclsc0321          ## Example: MyID=aubtss
 
-WD=/scratch/AMPHIBIAN24        ## Example:/scratch/$MyID/PracticeRNAseq  
-CD=/scratch/AMPHIBIAN24/CleanData            ## Example:/scratch/$MyID/PracticeRNAseq/CleanData   #   *** This is where the cleaned paired files are located from the last script
-REFD=/scratch/AMPHIBIAN24/reference_data/ncbi_dataset/data/GCF_017654675.1         ## Example:/scratch/$MyID/PracticeRNAseq/DaphniaRefGenome    # this directory contains the indexed reference genome for the garter snake
-MAPD=/scratch/AMPHIBIAN24/Map_HiSat2           ## Example:/scratch/$MyID/PracticeRNAseq/Map_HiSat2      #
-COUNTSD=/scratch/AMPHIBIAN24/Counts_StringTie       ## Example:/scratch/$MyID/PracticeRNAseq/Counts_StringTie
-RESULTSD=/scratch/AMPHIBIAN24/Counts_H_S_2024      ## Example:/home/aubtss/PracticeRNAseq/Counts_H_S
+WD=/scratch/aubclsc0321/RNAseqFrog ## Example:/scratch/$MyID/PracticeRNAseq  
+DD= /scratch/aubclsc0321? RNAseqFrog/RawData
+CD=/scratch/aubclsc0321/RNAseqFrog/CleanData           ## Example:/scratch/$MyID/PracticeRNAseq/CleanData   #   *** This is where the cleaned paired files are located from the last script
+REFD=/scratch/aubclsc0321/RNAseqFrog/XTropicalisRefGenome       ## Example:/scratch/$MyID/PracticeRNAseq/DaphniaRefGenome    # this directory contains the indexed reference genome for the garter snake
+MAPD=/scratch/aubclsc0321/RNAseqFrog/Map_HiSat2         ## Example:/scratch/$MyID/PracticeRNAseq/Map_HiSat2      #
+COUNTSD=/scratch/aubclsc0321/RNAseqFrog/Counts_StringTie ## Example:/scratch/$MyID/PracticeRNAseq/Counts_StringTie
+RESULTSD=/scratch/aubclsc0321/PracticeRNAseq_Full/Counts_H_S_2  ## Example:/home/aubtss/PracticeRNAseq/Counts_H_S
 
-REF=GCF_017654675.1_Xenopus_laevis_v10.1                 ## This is what the "easy name" will be for the genome reference
+REF=UCB_Xtro_10.0           ## This is what the "easy name" will be for the genome reference
 
 ## Make the directories and all subdirectories defined by the variables above
 mkdir -p $REFD
@@ -70,13 +71,13 @@ mkdir -p $RESULTSD
 ##################  Prepare the Reference Index for mapping with HiSat2   #############################
 cd $REFD
 ### Copy the reference genome (.fasta) and the annotation file (.gff3) to this REFD directory
-cp /scratch/AMPHIBIAN24/reference_data/ncbi_dataset/data/GCF_017654675.1/GCF_017654675.1_Xenopus_laevis_v10.1 .
-cp /scratch/AMPHIBIAN24/reference_data/ncbi_dataset/data/GCF_017654675.1/genomic.gtf .
+#cp /scratch/AMPHIBIAN24/reference_data/ncbi_dataset/data/GCF_017654675.1/GCF_017654675.1_Xenopus_laevis_v10.1 .
+#cp /scratch/AMPHIBIAN24/reference_data/ncbi_dataset/data/GCF_017654675.1/genomic.gtf .
 
 ###  Identify exons and splice sites on the reference genome
 #gffread ${REF}.gff3 -T -o ${REF}.gtf               ## gffread converts the annotation file from .gff3 to .gft formate for HiSat2 to use.
-hisat2_extract_splice_sites.py ${REF}.gtf > ${REF}.ss
-hisat2_extract_exons.py ${REF}.gtf > ${REF}.exon
+#hisat2_extract_splice_sites.py ${REF}.gtf > ${REF}.ss
+#hisat2_extract_exons.py ${REF}.gtf > ${REF}.exon
 
 #### Create a HISAT2 index for the reference genome. NOTE every mapping program will need to build a its own index.
 hisat2-build --ss ${REF}.ss --exon ${REF}.exon ${REF}.fna AMPHIBIAN24
