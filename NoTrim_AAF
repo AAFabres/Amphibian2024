@@ -196,18 +196,18 @@ mkdir -p $COUNTSD
 mkdir -p $RESULTSD
 
 ##################  Prepare the Reference Index for mapping with HiSat2   #############################
-#cd $REFD
+cd $REFD
 ### Copy the reference genome (.fasta) and the annotation file (.gff3) to this REFD directory
-#scp /home/${MyID}/Xenopus/${REF}.fasta .
-#scp /home/${MyID}/Xenopus/${REF}.gff3 .
+#scp /home/${MyID}/XTropicalis/${REF}.fna .
+#scp /home/${MyID}/XTropicalis/${REF}.gff .
 
 ###  Identify exons and splice sites on the reference genome
-#gffread ${REF}.gff3 -T -o ${REF}.gtf               ## gffread converts the annotation file from .gff3 to .gft formate for HiSat2 to use.
+#gffread ${REF}.gff -T -o ${REF}.gtf               ## gffread converts the annotation file from .gff3 to .gft formate for HiSat2 to use.
 #hisat2_extract_splice_sites.py ${REF}.gtf > ${REF}.ss
 #hisat2_extract_exons.py ${REF}.gtf > ${REF}.exon
 
 #### Create a HISAT2 index for the reference genome. NOTE every mapping program will need to build a its own index.
-#hisat2-build --ss ${REF}.ss --exon ${REF}.exon ${REF}.fasta Xenopus_index
+#hisat2-build --ss ${REF}.ss --exon ${REF}.exon ${REF}.fasta XTropicalis_index
 
 ########################  Map and Count the Data using HiSAT2 and StringTie  ########################
 
@@ -231,7 +231,7 @@ do
   ## HiSat2 is the mapping program
   ##  -p indicates number of processors, --dta reports alignments for StringTie --rf is the read orientation
    hisat2 -p 6 --dta --phred33       \
-    -x "${REFD}"/XenopusLaevis_index       \
+    -x "${REFD}"/XTropicalis_index       \
     -1 "${DD}"/"$i"_1.fastq  -2 "${DD}"/"$i"_2.fastq      \
     -S "$i".sam
 
