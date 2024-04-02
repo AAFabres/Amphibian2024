@@ -18,10 +18,10 @@
 
 ########## Load Modules
 source /apps/profiles/modules_asax.sh.dyn
-module load sra
-module load fastqc/0.10.1
-module load multiqc
-module load trimmomatic/0.39
+#module load sra
+#module load fastqc/0.10.1
+#module load multiqc
+#module load trimmomatic/0.39
 module load hisat2/2.2.0
 module load stringtie/2.2.1
 module load gcc/9.4.0
@@ -52,21 +52,21 @@ adapters=AdaptersToTrim_All.fa  ## This is a fasta file that has a list of adapt
 				## were made to search for the correct adapters for your project
 CD=$OP/CleanData            				## Example:/scratch/$MyID/PracticeRNAseq/CleanData   #   *** This is where the cleaned paired files are located from the last script
 PCQ=PostCleanQualityNoTrim
-REFD=$OP/XenopusRefGenome          ## Example:/scratch/$MyID/PracticeRNAseq/DaphniaRefGenome    # this directory contains the indexed reference genome for the garter snake
+REFD=$WD/XTropicalisRefGenome          ## Example:/scratch/$MyID/PracticeRNAseq/DaphniaRefGenome    # this directory contains the indexed reference genome for the garter snake
 MAPD=$OP/Map_HiSat2           			## Example:/scratch/$MyID/PracticeRNAseq/Map_HiSat2      #
 COUNTSD=/$OP/Counts_StringTie       ## Example:/scratch/$MyID/PracticeRNAseq/Counts_StringTie
 RESULTSD=/home/$MyID/PracticeRNAseq_FullNoTrim/Counts_H_S_2024      ## Example:/home/aubtss/PracticeRNAseq/Counts_H_S
-REF=Xenopus_laevis_v10.1                  ## This is what the "easy name" will be for the genome reference
+REF=UCB_Xtro_10.0                  ## This is what the "easy name" will be for the genome reference
 
 
 
 ##  make the directories in SCRATCH for holding the raw data 
 ## -p tells it to make any upper level directories that are not there.
-mkdir -p ${WD}
-mkdir -p ${DD}
-mkdir -p ${OP}
+#mkdir -p ${WD}
+#mkdir -p ${DD}
+#mkdir -p ${OP}
 ## move to the Data Directory
-cd ${DD}
+#cd ${DD}
 
 ##########  Download data files from NCBI: SRA using the Run IDs
   ### from SRA use the SRA tool kit - see NCBI website https://www.ncbi.nlm.nih.gov/sra/docs/sradownload/
@@ -190,24 +190,24 @@ cd ${DD}
 
 
 ## Make the directories and all subdirectories defined by the variables above
-mkdir -p $REFD
+#mkdir -p $REFD
 mkdir -p $MAPD
 mkdir -p $COUNTSD
 mkdir -p $RESULTSD
 
 ##################  Prepare the Reference Index for mapping with HiSat2   #############################
-cd $REFD
+#cd $REFD
 ### Copy the reference genome (.fasta) and the annotation file (.gff3) to this REFD directory
-scp /home/${MyID}/Xenopus/${REF}.fasta .
-scp /home/${MyID}/Xenopus/${REF}.gff3 .
+#scp /home/${MyID}/Xenopus/${REF}.fasta .
+#scp /home/${MyID}/Xenopus/${REF}.gff3 .
 
 ###  Identify exons and splice sites on the reference genome
-gffread ${REF}.gff3 -T -o ${REF}.gtf               ## gffread converts the annotation file from .gff3 to .gft formate for HiSat2 to use.
-hisat2_extract_splice_sites.py ${REF}.gtf > ${REF}.ss
-hisat2_extract_exons.py ${REF}.gtf > ${REF}.exon
+#gffread ${REF}.gff3 -T -o ${REF}.gtf               ## gffread converts the annotation file from .gff3 to .gft formate for HiSat2 to use.
+#hisat2_extract_splice_sites.py ${REF}.gtf > ${REF}.ss
+#hisat2_extract_exons.py ${REF}.gtf > ${REF}.exon
 
 #### Create a HISAT2 index for the reference genome. NOTE every mapping program will need to build a its own index.
-hisat2-build --ss ${REF}.ss --exon ${REF}.exon ${REF}.fasta Xenopus_index
+#hisat2-build --ss ${REF}.ss --exon ${REF}.exon ${REF}.fasta Xenopus_index
 
 ########################  Map and Count the Data using HiSAT2 and StringTie  ########################
 
@@ -231,7 +231,7 @@ do
   ## HiSat2 is the mapping program
   ##  -p indicates number of processors, --dta reports alignments for StringTie --rf is the read orientation
    hisat2 -p 6 --dta --phred33       \
-    -x "${REFD}"/Xenopus_index       \
+    -x "${REFD}"/XenopusLaevis_index       \
     -1 "${DD}"/"$i"_1.fastq  -2 "${DD}"/"$i"_2.fastq      \
     -S "$i".sam
 
