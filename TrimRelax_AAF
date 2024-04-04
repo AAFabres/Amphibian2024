@@ -171,16 +171,16 @@ fastqc ${CD}/"$i"_1_paired.fastq --outdir=${OP}/${PCQ}
 fastqc ${CD}/"$i"_2_paired.fastq --outdir=${OP}/${PCQ}
 
 
-#done<list			# This is the end of the loop
+done<list			# This is the end of the loop
 
 ################## Run MultiQC to summarize the fastqc results
 ### move to the directory with the cleaned data
-#cd ${OP}/${PCQ}
-#multiqc ${OP}/${PCQ}
+cd ${OP}/${PCQ}
+multiqc ${OP}/${PCQ}
 
 ########################  Now compress your results files from the Quality Assessment by FastQC 
 #######  Tarball the directory containing the FASTQC results so we can easily bring it back to our computer to evaluate.
-#tar cvzf ${PCQ}.tar.gz ${OP}/${PCQ}/*
+tar cvzf ${PCQ}.tar.gz ${OP}/${PCQ}/*
 
 
 #######
