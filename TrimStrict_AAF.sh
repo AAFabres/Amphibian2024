@@ -157,7 +157,7 @@ do
 					PE -threads 6 -phred33 \
         	"$i"_1.fastq "$i"_2.fastq  \
        	 ${CD}/"$i"_1_paired.fastq ${CD}/"$i"_1_unpaired.fastq  ${CD}/"$i"_2_paired.fastq ${CD}/"$i"_2_unpaired.fastq \
-       	 ILLUMINACLIP:TruSeq3-PE-2.fa:2:35:10 HEADCROP:5 LEADING:20 TRAILING:20 SLIDINGWINDOW:4:25 MINLEN:30
+       	 ILLUMINACLIP:TruSeq3-PE-2.fa:2:30:10 HEADCROP:10 LEADING:30 TRAILING:30 SLIDINGWINDOW:4:30 MINLEN:36
         
                 ## Trim read for quality when quality drops below Q30 and remove sequences shorter than 36 bp
                 ## PE for paired end phred-score-type  R1-Infile   R2-Infile  R1-Paired-outfile R1-unpaired-outfile R-Paired-outfile R2-unpaired-outfile  Trimming paramenter
