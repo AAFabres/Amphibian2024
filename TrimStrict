@@ -19,9 +19,9 @@
 ########## Load Modules
 source /apps/profiles/modules_asax.sh.dyn
 #module load sra
-#module load fastqc/0.10.1
-#module load multiqc
-#module load trimmomatic/0.39
+module load fastqc/0.10.1
+module load multiqc
+module load trimmomatic/0.39
 module load hisat2/2.2.0
 module load stringtie/2.2.1
 module load gcc/9.4.0
@@ -29,32 +29,35 @@ module load python/3.10.8-zimemtc
 module load samtools
 module load bcftools
 module load gffread
-module load gffcompare
+#module load gffcompare
 
-# Set the stack size to unlimited
+#  Set the stack size to unlimited
 ulimit -s unlimited
 
 # Turn echo on so all commands are echoed in the output log
 set -x
 
+
 ##########  Define variables and make directories
 ## Replace the numbers in the brackets with Your specific information
   ## make variable for your ASC ID so the directories are automatically made in YOUR directory
-MyID=aubclsc0324          ## Example: MyID=aubtss
+MyID=aubclsc0324         ## Example: MyID=aubtss
 
-WD=/scratch/$MyID/RNAseqFrog1            ## Example:/scratch/$MyID/PracticeRNAseq  
+
+WD=/scratch/$MyID/RNAseqFrog            ## Example:/scratch/$MyID/PracticeRNAseq  
+OP=/scratch/$MyID/RNAseqFrog/RelaxTrim
 DD=$WD/RawData
 RDQ=RawDataQuality
 adapters=AdaptersToTrim_All.fa  ## This is a fasta file that has a list of adapters commonly used in NGS sequencing. 
 				## In the future, for your data, you will likely need to edit this for other projects based on how your libraries 
 				## were made to search for the correct adapters for your project
-CD=$WD/CleanData            				## Example:/scratch/$MyID/PracticeRNAseq/CleanData   #   *** This is where the cleaned paired files are located from the last script
-PCQ=PostCleanQuality
-REFD=$WD/RanaRefGenome          ## Example:/scratch/$MyID/PracticeRNAseq/DaphniaRefGenome    # this directory contains the indexed reference genome for the garter snake
-MAPD=$WD/Map_HiSat2           			## Example:/scratch/$MyID/PracticeRNAseq/Map_HiSat2      #
-COUNTSD=/$WD/Counts_StringTie       ## Example:/scratch/$MyID/PracticeRNAseq/Counts_StringTie
-RESULTSD=/home/$MyID/PracticeRNAseq_Full2/Counts_H_S_2024      ## Example:/home/aubtss/PracticeRNAseq/Counts_H_S
-REF=aRanTem1.1                  ## This is what the "easy name" will be for the genome reference
+CD=$OP/CleanData            				## Example:/scratch/$MyID/PracticeRNAseq/CleanData   #   *** This is where the cleaned paired files are located from the last script
+PCQ=PostCleanQualityRelaxTrim
+REFD=$WD/XTropicalisRefGenome          ## Example:/scratch/$MyID/PracticeRNAseq/DaphniaRefGenome    # this directory contains the indexed reference genome for the garter snake
+MAPD=$OP/Map_HiSat2           			## Example:/scratch/$MyID/PracticeRNAseq/Map_HiSat2      #
+COUNTSD=/$OP/Counts_StringTie       ## Example:/scratch/$MyID/PracticeRNAseq/Counts_StringTie
+RESULTSD=/home/$MyID/PracticeRNAseq_FullRelaxTrim/Counts_H_S_2024      ## Example:/home/aubtss/PracticeRNAseq/Counts_H_S
+REF=UCB_Xtro_10.0                  ## This is what the "easy name" will be for the genome reference
 
 
 
@@ -74,25 +77,26 @@ REF=aRanTem1.1                  ## This is what the "easy name" will be for the 
 			## 	-I 	Append read id after spot id as 'accession.spot.readid' on defline.
 		## splits the files into R1 and R2 (forward reads, reverse reads)
 
-## These samples are from Bioproject PRJDB12187. An experiment on Buergeria otai, 3 samples heat stress (DRR316901, DRR316903 & DRR316904), 3 samples control (DRR316902, DRR316905 & DRR316906)
-## https://www.ncbi.nlm.nih.gov/bioproject/PRJDB12187
+## These samples are from Bioproject PRJNA437447. An experiment on Daphnia pulex, 5 samples on ad lib feed, 5 samples on caloric restriction diet
+## https://www.ncbi.nlm.nih.gov/bioproject?LinkName=sra_bioproject&from_uid=5206312
+## For class only do the 6 that you are assigned, delete the other 4 from this list
 
 #vdb-config --interactive
 #fastq-dump -F --split-files DRR316901
 
-#fasterq-dump --split-files DRR316901
-#fasterq-dump --split-files DRR316902
-#fasterq-dump --split-files DRR316903
-#fasterq-dump --split-files DRR316904
-#fasterq-dump --split-files DRR316905
-#fasterq-dump --split-files DRR316906
+#fasterq-dump DRR316901
+#fasterq-dump DRR316902
+#fasterq-dump DRR316903
+#fasterq-dump DRR316904
+#fasterq-dump DRR316905
+#fasterq-dump DRR316906
+
 
 
 ##### Extra ####
 ## If you are downloading data from a sequencing company instead of NCBI, using wget for example, then calculate the md5sum values of all the files in the folder (./*), and read into a text file.
 ## then you can compare the values in this file with the ones provided by the company.
 #md5sum ./* > md5sum.txt
-
 
 ##### Extra ####
 ## If you data comes with multiple R1 and R2 files per individual. You can contatenate them together using "cat" before running FASTQC
@@ -104,7 +108,7 @@ REF=aRanTem1.1                  ## This is what the "easy name" will be for the 
 ############## FASTQC to assess quality of the sequence data
 ## FastQC: run on each of the data files that have 'All' to check the quality of the data
 ## The output from this analysis is a folder of results and a zipped file of results and a .html file for each sample
-#mkdir -p ${WD}/${RDQ}
+#mkdir ${WD}/${RDQ}
 #fastqc *.fastq --outdir=${WD}/${RDQ}
 
 ##### MultiQC to summarized the fastqc results!
@@ -120,14 +124,16 @@ REF=aRanTem1.1                  ## This is what the "easy name" will be for the 
 ################****************** Step 2  Cleaning the data with Trimmomatic ###################################
 #######
 
+###Depending on the results from the relaxed trimming I will change to a more strict parameter
+
 
 ## make the directories to hold the Cleaned Data files, and the directory to hold the results for assessing quality of the cleaned data.
-#mkdir -p ${CD}
-#mkdir -p ${WD}/${PCQ}
+mkdir -p ${CD}
+mkdir -p ${OP}/${PCQ}
 
 
 ## Move to Raw Data Directory
-#cd ${DD}
+cd ${DD}
 
 ### Make list of file names to Trim
         ## this line is a set of piped (|) commands
@@ -135,23 +141,23 @@ REF=aRanTem1.1                  ## This is what the "easy name" will be for the 
         ## grep means grab all the file names that end in ".fastq", 
         ## cut that name into elements every where you see "_" and keep the first element (-f 1)
         ## sort the list and keep only the unique names and put it into a file named "list"
-#ls | grep ".fastq" |cut -d "_" -f 1 | sort | uniq > list
+ls | grep ".fastq" |cut -d "_" -f 1 | sort | uniq > list
 
 ### Copy over the list of Sequencing Adapters that we want Trimmomatic to look for (along with its default adapters)
         ## CHECK: You may need to edit this path for the file that is in the class_shared directory from your account.
-#scp /home/${MyID}/class_shared/AdaptersToTrim_All.fa . 
+#cp /home/${MyID}/class_shared/AdaptersToTrim_All.fa . 
 
 ### Run a while loop to process through the names in the list and Trim them with the Trimmomatic Code
-#while read i
-#do
+while read i
+do
 
         ### Run Trimmomatic in paired end (PE) mode with 6 threads using phred 33 quality score format. 
         ## STOP & DISCUSS: Check out the trimmomatic documentation to understand the parameters in line 77
-#	       java -jar /apps/x86-64/apps/spack_0.19.1/spack/opt/spack/linux-rocky8-zen3/gcc-11.3.0/trimmomatic-0.39-iu723m2xenra563gozbob6ansjnxmnfp/bin/trimmomatic-0.39.jar   \
-#					PE -threads 6 -phred33 \
- #       	"$i"_1.fastq "$i"_2.fastq  \
-  #     	 ${CD}/"$i"_1_paired.fastq ${CD}/"$i"_1_unpaired.fastq  ${CD}/"$i"_2_paired.fastq ${CD}/"$i"_2_unpaired.fastq \
-   #    	 ILLUMINACLIP:AdaptersToTrim_All.fa:2:35:10 HEADCROP:10 LEADING:30 TRAILING:30 SLIDINGWINDOW:6:30 MINLEN:36
+	       java -jar /apps/x86-64/apps/spack_0.19.1/spack/opt/spack/linux-rocky8-zen3/gcc-11.3.0/trimmomatic-0.39-iu723m2xenra563gozbob6ansjnxmnfp/bin/trimmomatic-0.39.jar   \
+					PE -threads 6 -phred33 \
+        	"$i"_1.fastq "$i"_2.fastq  \
+       	 ${CD}/"$i"_1_paired.fastq ${CD}/"$i"_1_unpaired.fastq  ${CD}/"$i"_2_paired.fastq ${CD}/"$i"_2_unpaired.fastq \
+       	 ILLUMINACLIP:TruSeq3-PE-2.fa:2:35:10 HEADCROP:5 LEADING:20 TRAILING:20 SLIDINGWINDOW:4:25 MINLEN:30
         
                 ## Trim read for quality when quality drops below Q30 and remove sequences shorter than 36 bp
                 ## PE for paired end phred-score-type  R1-Infile   R2-Infile  R1-Paired-outfile R1-unpaired-outfile R-Paired-outfile R2-unpaired-outfile  Trimming paramenter
@@ -163,20 +169,20 @@ REF=aRanTem1.1                  ## This is what the "easy name" will be for the 
 	## FastQC: run on each of the data files that have 'All' to check the quality of the data
 	## The output from this analysis is a folder of results and a zipped file of results
 
-#fastqc ${CD}/"$i"_1_paired.fastq --outdir=${WD}/${PCQ}
-#fastqc ${CD}/"$i"_2_paired.fastq --outdir=${WD}/${PCQ}
+fastqc ${CD}/"$i"_1_paired.fastq --outdir=${OP}/${PCQ}
+fastqc ${CD}/"$i"_2_paired.fastq --outdir=${OP}/${PCQ}
 
 
-#done<list			# This is the end of the loop
+done<list			# This is the end of the loop
 
 ################## Run MultiQC to summarize the fastqc results
 ### move to the directory with the cleaned data
-#cd ${WD}/${PCQ}
-#multiqc ${WD}/${PCQ}
+cd ${OP}/${PCQ}
+multiqc ${OP}/${PCQ}
 
 ########################  Now compress your results files from the Quality Assessment by FastQC 
 #######  Tarball the directory containing the FASTQC results so we can easily bring it back to our computer to evaluate.
-#tar cvzf ${PCQ}.tar.gz ${WD}/${PCQ}/*
+tar cvzf ${PCQ}.tar.gz ${OP}/${PCQ}/*
 
 
 #######
@@ -185,7 +191,7 @@ REF=aRanTem1.1                  ## This is what the "easy name" will be for the 
 
 
 ## Make the directories and all subdirectories defined by the variables above
-mkdir -p $REFD
+#mkdir -p $REFD
 mkdir -p $MAPD
 mkdir -p $COUNTSD
 mkdir -p $RESULTSD
@@ -193,26 +199,25 @@ mkdir -p $RESULTSD
 ##################  Prepare the Reference Index for mapping with HiSat2   #############################
 cd $REFD
 ### Copy the reference genome (.fasta) and the annotation file (.gff3) to this REFD directory
-#cp /home/${MyID}/class_shared/references/DaphniaPulex/PA42/${REF}.fasta .
-#cp /home/${MyID}/class_shared/references/DaphniaPulex/PA42/${REF}.gff3 .
+#scp /home/${MyID}/XTropicalis/${REF}.fna .
+#scp /home/${MyID}/XTropicalis/${REF}.gff .
 
 ###  Identify exons and splice sites on the reference genome
-#gffread ${REF}.gff3 -T -o ${REF}.gtf               ## gffread converts the annotation file from .gff3 to .gft formate for HiSat2 to use.
+#gffread ${REF}.gff -T -o ${REF}.gtf               ## gffread converts the annotation file from .gff3 to .gft formate for HiSat2 to use.
 #hisat2_extract_splice_sites.py ${REF}.gtf > ${REF}.ss
 #hisat2_extract_exons.py ${REF}.gtf > ${REF}.exon
 
 #### Create a HISAT2 index for the reference genome. NOTE every mapping program will need to build a its own index.
-hisat2-build --ss ${REF}.ss --exon ${REF}.exon ${REF}.fasta Rana_index
-exit
+#hisat2-build --ss ${REF}.ss --exon ${REF}.exon ${REF}.fna XTropicales_index
 
 ########################  Map and Count the Data using HiSAT2 and StringTie  ########################
 
 # Move to the data directory
 cd ${CD}  #### This is where our clean paired reads are located.
 
-## Create list of fastq files to map.    Example file format of your cleaned reads file names: DRR316901_1_paired.fastq DRR316901_2_paired.fastq
+## Create list of fastq files to map.    Example file format of your cleaned reads file names: SRR629651_1_paired.fastq SRR629651_2_paired.fastq
 ## grab all fastq files, cut on the underscore, use only the first of the cuts, sort, use unique put in list
-ls | grep ".fastq" |cut -d "_" -f 1| sort | uniq > list    #should list Example: DRR316901
+ls | grep ".fastq" |cut -d "_" -f 1| sort | uniq > list    #should list Example: SRR629651
 
 ## Move to the directory for mapping
 cd ${MAPD}
@@ -226,8 +231,8 @@ do
   ## HiSat2 is the mapping program
   ##  -p indicates number of processors, --dta reports alignments for StringTie --rf is the read orientation
    hisat2 -p 6 --dta --phred33       \
-    -x "${REFD}"/Rana_index       \
-    -1 "${CD}"/"$i"_1_paired.fastq  -2 "${CD}"/"$i"_2_paired.fastq      \
+    -x ${REFD}/XTropicales_index       \
+    -1 ${CD}/"$i"_1_paired.fastq  -2 ${CD}/"$i"_2_paired.fastq      \
     -S "$i".sam
 
     ### view: convert the SAM file into a BAM file  -bS: BAM is the binary format corresponding to the SAM text format.
@@ -253,7 +258,6 @@ do
 	stringtie -p 6 -e -B -G  "${REFD}"/"${REF}".gtf -o "${COUNTSD}"/"$i"/"$i".gtf -l "$i"   "${MAPD}"/"$i"_sorted.bam
 
 done<list
-
 
 #####################  Copy Results to home Directory.  These will be the files you want to bring back to your computer.
 ### these are your stats files from Samtools
