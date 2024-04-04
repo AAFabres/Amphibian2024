@@ -19,9 +19,9 @@
 ########## Load Modules
 source /apps/profiles/modules_asax.sh.dyn
 #module load sra
-#module load fastqc/0.10.1
-#module load multiqc
-#module load trimmomatic/0.39
+module load fastqc/0.10.1
+module load multiqc
+module load trimgalore/0.6.7
 module load hisat2/2.2.0
 module load stringtie/2.2.1
 module load gcc/9.4.0
@@ -120,17 +120,18 @@ REF=UCB_Xtro_10.0                  ## This is what the "easy name" will be for t
 
 
 #######
-################****************** Step 2  Cleaning the data with Trimmomatic ###################################
+################****************** Step 2  Cleaning the data with Trim Galore! ###################################
 #######
+#### Option Relax
 
 
 ## make the directories to hold the Cleaned Data files, and the directory to hold the results for assessing quality of the cleaned data.
-#mkdir ${CD}
-#mkdir ${WD}/${PCQ}
+mkdir ${CD}
+mkdir ${WD}/${PCQ}
 
 
 ## Move to Raw Data Directory
-#cd ${DD}
+cd ${DD}
 
 ### Make list of file names to Trim
         ## this line is a set of piped (|) commands
@@ -138,39 +139,41 @@ REF=UCB_Xtro_10.0                  ## This is what the "easy name" will be for t
         ## grep means grab all the file names that end in ".fastq", 
         ## cut that name into elements every where you see "_" and keep the first element (-f 1)
         ## sort the list and keep only the unique names and put it into a file named "list"
-#ls | grep ".fastq" |cut -d "_" -f 1 | sort | uniq > list
+ls | grep ".fastq" |cut -d "_" -f 1 | sort | uniq > list
 
 ### Copy over the list of Sequencing Adapters that we want Trimmomatic to look for (along with its default adapters)
         ## CHECK: You may need to edit this path for the file that is in the class_shared directory from your account.
 #cp /home/${MyID}/class_shared/AdaptersToTrim_All.fa . 
 
 ### Run a while loop to process through the names in the list and Trim them with the Trimmomatic Code
-#while read i
-#do
+while read i
+do
 
         ### Run Trimmomatic in paired end (PE) mode with 6 threads using phred 33 quality score format. 
         ## STOP & DISCUSS: Check out the trimmomatic documentation to understand the parameters in line 77
-#	       java -jar /apps/x86-64/apps/spack_0.19.1/spack/opt/spack/linux-rocky8-zen3/gcc-11.3.0/trimmomatic-0.39-iu723m2xenra563gozbob6ansjnxmnfp/bin/trimmomatic-0.39.jar   \
-#					PE -threads 6 -phred33 \
-#        	"$i"_1.fastq "$i"_2.fastq  \
-#       	 ${CD}/"$i"_1_paired.fastq ${CD}/"$i"_1_unpaired.fastq  ${CD}/"$i"_2_paired.fastq ${CD}/"$i"_2_unpaired.fastq \
-#       	 ILLUMINACLIP:AdaptersToTrim_All.fa:2:35:10 HEADCROP:10 LEADING:30 TRAILING:30 SLIDINGWINDOW:6:30 MINLEN:36
-#        
-                ## Trim read for quality when quality drops below Q30 and remove sequences shorter than 36 bp
-                ## PE for paired end phred-score-type  R1-Infile   R2-Infile  R1-Paired-outfile R1-unpaired-outfile R-Paired-outfile R2-unpaired-outfile  Trimming paramenter
-                ## MINLEN:<length> #length: Specifies the minimum length of reads to be kept.
-                ## SLIDINGWINDOW:<windowSize>:<requiredQuality>  #windowSize: specifies the number of bases to average across  
-                ## requiredQuality: specifies the average quality required.
+	      
+trim_galore --paired --q 20 --illumina "$i"_1.fastq "$i"_2.fastq -o ${CD}/trimGalore/
 
+# --paired is to tell the program that your using paired data
+# --q this is the Qthred score that will filter data below Qphred scroe 20, which is the default non-strict model
+# --ilumina only filter for 'AGATCGGAAGAGC' this adapter	#Our data is illumina
+# not putting an adapter option it give me that the adapter is 'CTGTCTCTTATA'
+# -o where the output files should go
+
+        
+                ## Trim read for quality when quality drops below Q20
+                ## output file 1: DRR316901_1_val_1.fq
+		## output file 2: DRR316901_2_val_2.fq 
+		 
 	############## FASTQC to assess quality of the Cleaned sequence data
 	## FastQC: run on each of the data files that have 'All' to check the quality of the data
 	## The output from this analysis is a folder of results and a zipped file of results
 
-#fastqc ${CD}/"$i"_1_paired.fastq --outdir=${WD}/${PCQ}
-#fastqc ${CD}/"$i"_2_paired.fastq --outdir=${WD}/${PCQ}
+fastqc ${CD}/"$i"_1_val_1.fq --outdir=${WD}/${PCQ}
+fastqc ${CD}/"$i"_2_val_2.fq --outdir=${WD}/${PCQ}
 
 
-#done<list			# This is the end of the loop
+done<list			# This is the end of the loop
 
 ################## Run MultiQC to summarize the fastqc results
 ### move to the directory with the cleaned data
@@ -194,7 +197,7 @@ REF=UCB_Xtro_10.0                  ## This is what the "easy name" will be for t
 #mkdir -p $RESULTSD
 
 ##################  Prepare the Reference Index for mapping with HiSat2   #############################
-cd $REFD
+#cd $REFD
 ### Copy the reference genome (.fasta) and the annotation file (.gff3) to this REFD directory
 #scp /home/${MyID}/XTropicalis/${REF}.fna .
 #scp /home/${MyID}/XTropicalis/${REF}.gff .
@@ -205,8 +208,7 @@ cd $REFD
 #hisat2_extract_exons.py ${REF}.gtf > ${REF}.exon
 
 #### Create a HISAT2 index for the reference genome. NOTE every mapping program will need to build a its own index.
-hisat2-build --ss ${REF}.ss --exon ${REF}.exon ${REF}.fna XTropicales_index
-exit
+#hisat2-build --ss ${REF}.ss --exon ${REF}.exon ${REF}.fna XTropicales_index
 
 ########################  Map and Count the Data using HiSAT2 and StringTie  ########################
 
@@ -229,8 +231,8 @@ do
   ## HiSat2 is the mapping program
   ##  -p indicates number of processors, --dta reports alignments for StringTie --rf is the read orientation
    hisat2 -p 6 --dta --phred33       \
-    -x ${REFD}/XTropicalis_index       \
-    -1 ${CD}/"$i"_1_paired.fastq  -2 ${CD}/"$i"_2_paired.fastq      \
+    -x ${REFD}/XTropicales_index       \
+    -1 ${CD}/"$i"_1_val_1.fq  -2 ${CD}/"$i"_2_val_2.fq      \
     -S "$i".sam
 
     ### view: convert the SAM file into a BAM file  -bS: BAM is the binary format corresponding to the SAM text format.
@@ -257,7 +259,6 @@ do
 
 done<list
 
-exit
 #####################  Copy Results to home Directory.  These will be the files you want to bring back to your computer.
 ### these are your stats files from Samtools
 cp *.txt ${RESULTSD}
