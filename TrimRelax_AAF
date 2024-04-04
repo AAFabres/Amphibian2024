@@ -126,8 +126,8 @@ REF=UCB_Xtro_10.0                  ## This is what the "easy name" will be for t
 
 
 ## make the directories to hold the Cleaned Data files, and the directory to hold the results for assessing quality of the cleaned data.
-#mkdir ${CD}
-#mkdir ${OP}/${PCQ}
+mkdir -p ${CD}
+mkdir -p ${OP}/${PCQ}
 
 
 ## Move to Raw Data Directory
