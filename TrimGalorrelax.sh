@@ -46,16 +46,16 @@ MyID=aubclsc0324         ## Example: MyID=aubtss
 
 WD=/scratch/$MyID/RNAseqFrog            ## Example:/scratch/$MyID/PracticeRNAseq  
 DD=$WD/RawData
-RDQ=RawDataQuality
-adapters=AdaptersToTrim_All.fa  ## This is a fasta file that has a list of adapters commonly used in NGS sequencing. 
+#RDQ=RawDataQuality
+#adapters=TruSeq3-PE-2.fa  ## This is a fasta file that has a list of adapters commonly used in NGS sequencing. 
 				## In the future, for your data, you will likely need to edit this for other projects based on how your libraries 
 				## were made to search for the correct adapters for your project
-CD=$WD/CleanData            				## Example:/scratch/$MyID/PracticeRNAseq/CleanData   #   *** This is where the cleaned paired files are located from the last script
-PCQ=PostCleanQuality
+CD=$OP/CleanData            				## Example:/scratch/$MyID/PracticeRNAseq/CleanData   #   *** This is where the cleaned paired files are located from the last script
+PCQ=PostCleanQualityRelaxGalore
 REFD=$WD/XTropicalisRefGenome          ## Example:/scratch/$MyID/PracticeRNAseq/DaphniaRefGenome    # this directory contains the indexed reference genome for the garter snake
-MAPD=$WD/Map_HiSat2           			## Example:/scratch/$MyID/PracticeRNAseq/Map_HiSat2      #
-COUNTSD=/$WD/Counts_StringTie       ## Example:/scratch/$MyID/PracticeRNAseq/Counts_StringTie
-RESULTSD=/home/$MyID/PracticeRNAseq_Full/Counts_H_S_2024      ## Example:/home/aubtss/PracticeRNAseq/Counts_H_S
+MAPD=$OP/Map_HiSat2           			## Example:/scratch/$MyID/PracticeRNAseq/Map_HiSat2      #
+COUNTSD=/$OP/Counts_StringTie       ## Example:/scratch/$MyID/PracticeRNAseq/Counts_StringTie
+RESULTSD=/home/$MyID/PracticeRNAseq_FullRelaxGalore/Counts_H_S_2024      ## Example:/home/aubtss/PracticeRNAseq/Counts_H_S
 REF=UCB_Xtro_10.0                  ## This is what the "easy name" will be for the genome reference
 
 
@@ -127,7 +127,7 @@ REF=UCB_Xtro_10.0                  ## This is what the "easy name" will be for t
 
 ## make the directories to hold the Cleaned Data files, and the directory to hold the results for assessing quality of the cleaned data.
 mkdir ${CD}
-mkdir ${WD}/${PCQ}
+mkdir ${OP}/${PCQ}
 
 
 ## Move to Raw Data Directory
@@ -169,20 +169,20 @@ trim_galore --paired --q 20 --illumina "$i"_1.fastq "$i"_2.fastq -o ${CD}/
 	## FastQC: run on each of the data files that have 'All' to check the quality of the data
 	## The output from this analysis is a folder of results and a zipped file of results
 
-fastqc ${CD}/"$i"_1_val_1.fq --outdir=${WD}/${PCQ}
-fastqc ${CD}/"$i"_2_val_2.fq --outdir=${WD}/${PCQ}
+fastqc ${CD}/"$i"_1_val_1.fq --outdir=${OP}/${PCQ}
+fastqc ${CD}/"$i"_2_val_2.fq --outdir=${OP}/${PCQ}
 
 
 done<list			# This is the end of the loop
 
 ################## Run MultiQC to summarize the fastqc results
 ### move to the directory with the cleaned data
-#cd ${WD}/${PCQ}
-#multiqc ${WD}/${PCQ}
+cd ${OP}/${PCQ}
+multiqc ${OP}/${PCQ}
 
 ########################  Now compress your results files from the Quality Assessment by FastQC 
 #######  Tarball the directory containing the FASTQC results so we can easily bring it back to our computer to evaluate.
-#tar cvzf ${PCQ}.tar.gz ${WD}/${PCQ}/*
+tar cvzf ${PCQ}.tar.gz ${OP}/${PCQ}/*
 
 
 #######
@@ -192,9 +192,9 @@ done<list			# This is the end of the loop
 
 ## Make the directories and all subdirectories defined by the variables above
 #mkdir -p $REFD
-#mkdir -p $MAPD
-#mkdir -p $COUNTSD
-#mkdir -p $RESULTSD
+mkdir -p $MAPD
+mkdir -p $COUNTSD
+mkdir -p $RESULTSD
 
 ##################  Prepare the Reference Index for mapping with HiSat2   #############################
 #cd $REFD
