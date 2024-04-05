@@ -45,18 +45,18 @@ MyID=aubclsc0324         ## Example: MyID=aubtss
 
 
 WD=/scratch/$MyID/RNAseqFrog            ## Example:/scratch/$MyID/PracticeRNAseq  
-OP=/scratch/$MyID/RNAseqFrog/RelaxTrim
+OP=/scratch/$MyID/RNAseqFrog/StrictTrim
 DD=$WD/RawData
 RDQ=RawDataQuality
-adapters=AdaptersToTrim_All.fa  ## This is a fasta file that has a list of adapters commonly used in NGS sequencing. 
+adapters=TruSeq3-PE-2.fa  ## This is a fasta file that has a list of adapters commonly used in NGS sequencing. 
 				## In the future, for your data, you will likely need to edit this for other projects based on how your libraries 
 				## were made to search for the correct adapters for your project
 CD=$OP/CleanData            				## Example:/scratch/$MyID/PracticeRNAseq/CleanData   #   *** This is where the cleaned paired files are located from the last script
-PCQ=PostCleanQualityRelaxTrim
+PCQ=PostCleanQualityStrictTrim
 REFD=$WD/XTropicalisRefGenome          ## Example:/scratch/$MyID/PracticeRNAseq/DaphniaRefGenome    # this directory contains the indexed reference genome for the garter snake
 MAPD=$OP/Map_HiSat2           			## Example:/scratch/$MyID/PracticeRNAseq/Map_HiSat2      #
 COUNTSD=/$OP/Counts_StringTie       ## Example:/scratch/$MyID/PracticeRNAseq/Counts_StringTie
-RESULTSD=/home/$MyID/PracticeRNAseq_FullRelaxTrim/Counts_H_S_2024      ## Example:/home/aubtss/PracticeRNAseq/Counts_H_S
+RESULTSD=/home/$MyID/PracticeRNAseq_FullStrictTrim/Counts_H_S_2024      ## Example:/home/aubtss/PracticeRNAseq/Counts_H_S
 REF=UCB_Xtro_10.0                  ## This is what the "easy name" will be for the genome reference
 
 
@@ -197,7 +197,7 @@ mkdir -p $COUNTSD
 mkdir -p $RESULTSD
 
 ##################  Prepare the Reference Index for mapping with HiSat2   #############################
-cd $REFD
+#cd $REFD
 ### Copy the reference genome (.fasta) and the annotation file (.gff3) to this REFD directory
 #scp /home/${MyID}/XTropicalis/${REF}.fna .
 #scp /home/${MyID}/XTropicalis/${REF}.gff .
