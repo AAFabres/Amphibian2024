@@ -45,6 +45,7 @@ MyID=aubclsc0324         ## Example: MyID=aubtss
 
 
 WD=/scratch/$MyID/RNAseqFrog            ## Example:/scratch/$MyID/PracticeRNAseq  
+OP=/scratch/$MyID/RNAseqFrog/RelaxGalore
 DD=$WD/RawData
 #RDQ=RawDataQuality
 #adapters=TruSeq3-PE-2.fa  ## This is a fasta file that has a list of adapters commonly used in NGS sequencing. 
