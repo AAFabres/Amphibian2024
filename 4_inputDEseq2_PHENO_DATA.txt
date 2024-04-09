@@ -1,0 +1,7 @@
+	Treatment	type
+DRR316901	heat_stress	paired-end
+DRR316902	control	paired-end
+DRR316903	heat_stress	paired-end
+DRR316904	heat_stress	paired-end
+DRR316905	control	paired-end
+DRR316906	control	paired-end
