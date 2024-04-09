@@ -47,7 +47,7 @@ MyID=aubclsc0343          ## Example: MyID=aubtss
 WD=/scratch/$MyID/PracticeRNAseq_Full_Script            ## Example:/scratch/$MyID/PracticeRNAseq  
 DD=$WD/RawData
 RDQ=RawDataQuality
-adapters=AdaptersToTrim_All.fa  ## This is a fasta file that has a list of adapters commonly used in NGS sequencing. 
+adapters=TruSeq3-PE-2.fa  ## This is a fasta file that has a list of adapters commonly used in NGS sequencing. 
 				## In the future, for your data, you will likely need to edit this for other projects based on how your libraries 
 				## were made to search for the correct adapters for your project
 CD=$WD/CleanData            				## Example:/scratch/$MyID/PracticeRNAseq/CleanData   #   *** This is where the cleaned paired files are located from the last script
@@ -142,7 +142,8 @@ ls | grep ".fastq" |cut -d "_" -f 1 | sort | uniq > list
 
 ### Copy over the list of Sequencing Adapters that we want Trimmomatic to look for (along with its default adapters)
         ## CHECK: You may need to edit this path for the file that is in the class_shared directory from your account.
-cp /home/${MyID}/class_shared/AdaptersToTrim_All.fa . 
+#cp /home/${MyID}/class_shared/AdaptersToTrim_All.fa . 
+cp /home/${MyID}/adapters/${adapters} .
 
 ### Run a while loop to process through the names in the list and Trim them with the Trimmomatic Code
 while read i
