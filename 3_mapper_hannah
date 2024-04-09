@@ -21,10 +21,10 @@
 ##  After you have this script in your home directory and you have made it executable using  "chmod +x [script name]", 
 ##  then run the script by using "run_script [script name]"
 ##  suggested paramenters are below to submit this script.
-##    queue: class or medium
-##    core: 6
-##    time limit (HH:MM:SS): 04:00:00 
-##    Memory: 12gb
+##    queue: large
+##    core: 12
+##    time limit (HH:MM:SS): 18:00:00 
+##    Memory: 120gb
 ##    
 ###############################################
 
@@ -52,13 +52,12 @@ set -x
   ## Replace the [#] with paths to define these variable
 MyID=aubclsc0321          ## Example: MyID=aubtss
 
-WD=/scratch/aubclsc0321/RNAseqFrog ## Example:/scratch/$MyID/PracticeRNAseq  
-DD= /scratch/aubclsc0321? RNAseqFrog/RawData
-CD=/scratch/aubclsc0321/RNAseqFrog/CleanData           ## Example:/scratch/$MyID/PracticeRNAseq/CleanData   #   *** This is where the cleaned paired files are located from the last script
-REFD=/scratch/aubclsc0321/RNAseqFrog/XTropicalisRefGenome       ## Example:/scratch/$MyID/PracticeRNAseq/DaphniaRefGenome    # this directory contains the indexed reference genome for the garter snake
-MAPD=/scratch/aubclsc0321/RNAseqFrog/Map_HiSat2         ## Example:/scratch/$MyID/PracticeRNAseq/Map_HiSat2      #
-COUNTSD=/scratch/aubclsc0321/RNAseqFrog/Counts_StringTie ## Example:/scratch/$MyID/PracticeRNAseq/Counts_StringTie
-RESULTSD=/scratch/aubclsc0321/PracticeRNAseq_Full/Counts_H_S_2  ## Example:/home/aubtss/PracticeRNAseq/Counts_H_S
+WD=/scratch/aubclsc0321/PracticeRNAseq  ## Example:/scratch/$MyID/PracticeRNAseq  
+CD=//scratch/aubclsc0321/PracticeRNAseq/RawData           ## Example:/scratch/$MyID/PracticeRNAseq/CleanData   #   *** This is where the cleaned paired files are located from the last script
+REFD=/scratch/AMPHIBIAN24/XTropicalisRefGenome        ## Example:/scratch/$MyID/PracticeRNAseq/DaphniaRefGenome    # this directory contains the indexed reference genome for the garter snake
+MAPD=/scratch/aubclsc0321/PracticeRNAseq/Map_HiSat2         ## Example:/scratch/$MyID/PracticeRNAseq/Map_HiSat2      #
+COUNTSD= /scratch/aubclsc0321/PracticeRNAseq/Counts_StringTie ## Example:/scratch/$MyID/PracticeRNAseq/Counts_StringTie
+RESULTSD= /home/aubclsc0321/PracticeRNAseq/Counts_H_S_2024   ## Example:/home/aubtss/PracticeRNAseq/Counts_H_S
 
 REF=UCB_Xtro_10.0           ## This is what the "easy name" will be for the genome reference
 
@@ -80,7 +79,7 @@ cd $REFD
 #hisat2_extract_exons.py ${REF}.gtf > ${REF}.exon
 
 #### Create a HISAT2 index for the reference genome. NOTE every mapping program will need to build a its own index.
-hisat2-build --ss ${REF}.ss --exon ${REF}.exon ${REF}.fna AMPHIBIAN24
+hisat2-build --ss ${REF}.ss --exon ${REF}.exon ${REF}.fna AMPHIBIAN24_index
 
 ########################  Map and Count the Data using HiSAT2 and StringTie  ########################
 
@@ -103,7 +102,7 @@ do
   ## HiSat2 is the mapping program
   ##  -p indicates number of processors, --dta reports alignments for StringTie --rf is the read orientation
    hisat2 -p 6 --dta --phred33       \
-    -x "${REFD}"/AMPHIBIAN24       \
+    -x "${REFD}"/AMPHIBIAN24_index       \
     -1 "${CD}"/"$i"_1_paired.fastq  -2 "${CD}"/"$i"_2_paired.fastq      \
     -S "$i".sam
 
