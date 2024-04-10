@@ -47,7 +47,7 @@ MyID=aubclsc0338          ## Example: MyID=aubtss
 WD=/scratch/$MyID/BW_WorkingDirectory            ## Example:/scratch/$MyID/PracticeRNAseq  
 DD=$WD/RawData
 RDQ=RawDataQuality
-adapters=AdaptersToTrim_All.fa  ## This is a fasta file that has a list of adapters commonly used in NGS sequencing. 
+adapters=TruSeq3-PE-2.fa  ## This is a fasta file that has a list of adapters commonly used in NGS sequencing. 
 				## In the future, for your data, you will likely need to edit this for other projects based on how your libraries 
 				## were made to search for the correct adapters for your project
 CD=$WD/CleanData            				## Example:/scratch/$MyID/PracticeRNAseq/CleanData   #   *** This is where the cleaned paired files are located from the last script
