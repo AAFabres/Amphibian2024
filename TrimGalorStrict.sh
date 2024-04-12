@@ -163,15 +163,15 @@ trim_galore --paired --q 30 --illumina --three_prime_clip_R2 10 --length 36 "$i"
 
         
                 ## Trim read for quality when quality drops below Q20
-                ## output file 1: DRR316901_1_trimmed.fq
-		            ## output file 2: DRR316901_2_trimmed.fq 
+                ## output file 1: DRR316901_1_val_1.fq
+		## output file 2: DRR316901_2_val_2.fq 
 		 
 	############## FASTQC to assess quality of the Cleaned sequence data
 	## FastQC: run on each of the data files that have 'All' to check the quality of the data
 	## The output from this analysis is a folder of results and a zipped file of results
 
-fastqc ${CD}/"$i"_1_trimmed.fq --outdir=${OP}/${PCQ}
-fastqc ${CD}/"$i"_2_trimmed.fq --outdir=${OP}/${PCQ}
+fastqc ${CD}/"$i"_1_val_1.fq --outdir=${OP}/${PCQ}
+fastqc ${CD}/"$i"_2_val_2.fq --outdir=${OP}/${PCQ}
 
 
 done<list			# This is the end of the loop
@@ -233,7 +233,7 @@ do
   ##  -p indicates number of processors, --dta reports alignments for StringTie --rf is the read orientation
    hisat2 -p 6 --dta --phred33       \
     -x ${REFD}/XTropicales_index       \
-    -1 ${CD}/"$i"_1_trimmed.fq  -2 ${CD}/"$i"_2_trimmed.fq      \
+    -1 ${CD}/"$i"_1_val_1.fq  -2 ${CD}/"$i"_2_val_2.fq      \
     -S "$i".sam
 
     ### view: convert the SAM file into a BAM file  -bS: BAM is the binary format corresponding to the SAM text format.
