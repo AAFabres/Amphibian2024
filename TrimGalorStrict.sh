@@ -153,7 +153,7 @@ do
         ### Run Trimmomatic in paired end (PE) mode with 6 threads using phred 33 quality score format. 
         ## STOP & DISCUSS: Check out the trimmomatic documentation to understand the parameters in line 77
 	      
-trim_galore --paired --q 30 --illumina --three_prime_clip_R2 10 --length 36 "$i"_1.fastq "$i"_2.fastq -o ${CD}/
+trim_galore --paired --q 30 --illumina --three_prime_clip_R1 10 --three_prime_clip_R2 10 --length 36 "$i"_1.fastq "$i"_2.fastq -o ${CD}/
 
 # --paired is to tell the program that your using paired data
 # --q this is the Qthred score that will filter data below Qphred scroe 20, which is the default non-strict model
