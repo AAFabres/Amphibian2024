@@ -167,8 +167,8 @@ do
 	## FastQC: run on each of the data files that have 'All' to check the quality of the data
 	## The output from this analysis is a folder of results and a zipped file of results
 
-fastqc ${CD}/"$i"_1_paired.fastq --outdir=${WD}/${PCQ}
-fastqc ${CD}/"$i"_2_paired.fastq --outdir=${WD}/${PCQ}
+fastqc ${CD}/"$i"_1_paired.fastq --outdir=${OP}/${PCQ}
+fastqc ${CD}/"$i"_2_paired.fastq --outdir=${OP}/${PCQ}
 
 
 done<list			# This is the end of the loop
