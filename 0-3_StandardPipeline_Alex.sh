@@ -29,7 +29,7 @@ module load python/3.10.8-zimemtc
 module load samtools
 module load bcftools
 module load gffread
-module load gffcompare
+#module load gffcompare
 
 #  Set the stack size to unlimited
 ulimit -s unlimited
@@ -44,18 +44,18 @@ set -x
 MyID=aubclsc0343          ## Example: MyID=aubtss
 
 
-WD=/scratch/$MyID/PracticeRNAseq_Full_Script            ## Example:/scratch/$MyID/PracticeRNAseq  
-DD=$WD/RawData
+WD=/scratch/${MyID}/PracticeRNAseq_Full            ## Example:/scratch/$MyID/PracticeRNAseq  
+DD=/scratch/${MyID}/PracticeRNAseq_Full/RawData
 RDQ=RawDataQuality
 adapters=TruSeq3-PE-2.fa  ## This is a fasta file that has a list of adapters commonly used in NGS sequencing. 
 				## In the future, for your data, you will likely need to edit this for other projects based on how your libraries 
 				## were made to search for the correct adapters for your project
-CD=$WD/CleanData            				## Example:/scratch/$MyID/PracticeRNAseq/CleanData   #   *** This is where the cleaned paired files are located from the last script
+CD=${WD}/CleanData            				## Example:/scratch/$MyID/PracticeRNAseq/CleanData   #   *** This is where the cleaned paired files are located from the last script
 PCQ=PostCleanQuality
-REFD=/scratch/AMPHIBIAN24/XTropicalisRefGenome          ## Example:/scratch/$MyID/PracticeRNAseq/DaphniaRefGenome    # this directory contains the indexed reference genome for Xenopus 
-MAPD=$WD/Map_HiSat2           			## Example:/scratch/$MyID/PracticeRNAseq/Map_HiSat2      #
-COUNTSD=/$WD/Counts_StringTie       ## Example:/scratch/$MyID/PracticeRNAseq/Counts_StringTie
-RESULTSD=/home/$MyID/PracticeRNAseq_Full/Counts_H_S_2024      ## Example:/home/aubtss/PracticeRNAseq/Counts_H_S
+REFD=/scratch/aubclsc0324/RNAseqFrog/XTropicalisRefGenome          ## Example:/scratch/$MyID/PracticeRNAseq/DaphniaRefGenome    # this directory contains the indexed reference genome for Xenopus 
+MAPD=${WD}/Map_HiSat2           			## Example:/scratch/$MyID/PracticeRNAseq/Map_HiSat2      #
+COUNTSD=/${WD}/Counts_StringTie       ## Example:/scratch/$MyID/PracticeRNAseq/Counts_StringTie
+RESULTSD=/home/${MyID}/RNAseq_Full/Counts_H_S_2024      ## Example:/home/aubtss/PracticeRNAseq/Counts_H_S
 REF=UCB_Xtro_10.0                   ## This is what the "easy name" will be for the genome reference
 
 
@@ -80,7 +80,7 @@ cd ${DD}
 ## https://www.ncbi.nlm.nih.gov/bioproject/PRJDB12187
 
 
-vdb-config --interactive
+#vdb-config --interactive
 #fastq-dump -F --split-files DRR316901
 
 
@@ -189,24 +189,24 @@ tar cvzf ${PCQ}.tar.gz ${WD}/${PCQ}/*
 
 
 ## Make the directories and all subdirectories defined by the variables above
-mkdir -p $REFD
+#mkdir -p $REFD
 mkdir -p $MAPD
 mkdir -p $COUNTSD
 mkdir -p $RESULTSD
 
 ##################  Prepare the Reference Index for mapping with HiSat2   #############################
-cd $REFD
+#cd $REFD
 ### Copy the reference genome (.fasta) and the annotation file (.gff3) to this REFD directory
-scp /home/${MyID}/XTropicalis/${REF}.fna .
-scp /home/${MyID}/XTropicalis/${REF}.gff .
+#scp /home/${MyID}/XTropicalis/${REF}.fna .
+#scp /home/${MyID}/XTropicalis/${REF}.gff .
 
 ###  Identify exons and splice sites on the reference genome
-gffread ${REF}.gff3 -T -o ${REF}.gtf               ## gffread converts the annotation file from .gff3 to .gft formate for HiSat2 to use.
-hisat2_extract_splice_sites.py ${REF}.gtf > ${REF}.ss
-hisat2_extract_exons.py ${REF}.gtf > ${REF}.exon
+#gffread ${REF}.gff3 -T -o ${REF}.gtf               ## gffread converts the annotation file from .gff3 to .gft formate for HiSat2 to use.
+#hisat2_extract_splice_sites.py ${REF}.gtf > ${REF}.ss
+#hisat2_extract_exons.py ${REF}.gtf > ${REF}.exon
 
 #### Create a HISAT2 index for the reference genome. NOTE every mapping program will need to build a its own index.
-hisat2-build --ss ${REF}.ss --exon ${REF}.exon ${REF}.fna XTropicales_index
+#hisat2-build --ss ${REF}.ss --exon ${REF}.exon ${REF}.fna XTropicales_index
 
 ########################  Map and Count the Data using HiSAT2 and StringTie  ########################
 
