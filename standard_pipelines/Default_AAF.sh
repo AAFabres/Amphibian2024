@@ -1,24 +1,27 @@
 #! /bin/bash
 
-######### FunGen Course Instructions ############
-## Purpose: The purpose of this script is to run the full RNAseq pipeline
-## For running the script on the Alabama Super Computer.
+##Script written by Alejandra Fabres
+##PhD Stundent
+##Department of Biological Science
+##April 26th 2024
+
+##This scrip is a modified verision of a default script provided by Dr. Tonia Schwartz for the Functional Genomics Class of Spring 2024
+######### Script for analyzing data with DEFAULT pipeline ############
+## Objective: Download raw read from NCBI and run the full RNAseq pipeline without trimming
+## This script is ment to run on the Alabama Super Computer.
 ##	For more information: https://hpcdocs.asc.edu/content/slurm-queue-system
-## 	After you have this script in your home directory and you have made it executable using  "chmod +x [script name]", 
-## 	then run the script by using "run_script [script name]"
 ## 	suggested paramenters are below to submit this script.
-##  You may need to increase these for bigger datasets
 ## 		queue: medium
-##		core: 6
-##		time limit (HH:MM:SS): 18:00:00 
-##		Memory: 12gb
+##		core: 8
+##		time limit (HH:MM:SS): 20:00:00 
+##		Memory: 16gb
 ##		
 ###############################################
 
 
 ########## Load Modules
 source /apps/profiles/modules_asax.sh.dyn
-#module load sra
+module load sra
 module load fastqc/0.10.1
 module load multiqc
 module load trimmomatic/0.39
@@ -41,23 +44,19 @@ set -x
 ##########  Define variables and make directories
 ## Replace the numbers in the brackets with Your specific information
   ## make variable for your ASC ID so the directories are automatically made in YOUR directory
-MyID=aubclsc0324         ## Example: MyID=aubtss
-
-
-WD=/scratch/$MyID/RNAseqFrog            ## Example:/scratch/$MyID/PracticeRNAseq  
+MyID=aubclsc0324
+WD=/scratch/$MyID/RNAseqFrog
 OP=/scratch/$MyID/RNAseqFrog/DEFAULT
 DD=$WD/RawData
 RDQ=RawDataQuality
-#adapters=AdaptersToTrim_All.fa  ## This is a fasta file that has a list of adapters commonly used in NGS sequencing. 
-				## In the future, for your data, you will likely need to edit this for other projects based on how your libraries 
-				## were made to search for the correct adapters for your project
-CD=$OP/CleanData            				## Example:/scratch/$MyID/PracticeRNAseq/CleanData   #   *** This is where the cleaned paired files are located from the last script
+adapters=TruSeq3-PE-2.fa
+CD=$OP/CleanData
 PCQ=PostCleanQuality
-REFD=$WD/XTropicalisRefGenome          ## Example:/scratch/$MyID/PracticeRNAseq/DaphniaRefGenome    # this directory contains the indexed reference genome for the garter snake
-MAPD=$OP/Map_HiSat2           			## Example:/scratch/$MyID/PracticeRNAseq/Map_HiSat2      #
-COUNTSD=/$OP/Counts_StringTie       ## Example:/scratch/$MyID/PracticeRNAseq/Counts_StringTie
-RESULTSD=/home/$MyID/PracticeRNAseq_FullDEFAULT/Counts_H_S_2024      ## Example:/home/aubtss/PracticeRNAseq/Counts_H_S
-REF=UCB_Xtro_10.0                  ## This is what the "easy name" will be for the genome reference
+REFD=$WD/XTropicalisRefGenome	#folder with mapped genome
+MAPD=$OP/Map_HiSat2
+COUNTSD=/$OP/Counts_StringTie
+RESULTSD=/home/$MyID/PracticeRNAseq_FullDEFAULT/Counts_H_S_2024
+REF=UCB_Xtro_10.0		#name of reference genome at NCBI
 
 
 
