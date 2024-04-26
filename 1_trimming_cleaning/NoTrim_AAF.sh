@@ -1,26 +1,23 @@
 #! /bin/bash
 
-######### FunGen Course Instructions ############
-## Purpose: The purpose of this script is to run the full RNAseq pipeline
-## For running the script on the Alabama Super Computer.
+######### Script for analyzing data without cleaning and trimming ############
+## Objective: Download raw read from NCBI and run the full RNAseq pipeline without trimming
+## This script is ment to run on the Alabama Super Computer.
 ##	For more information: https://hpcdocs.asc.edu/content/slurm-queue-system
-## 	After you have this script in your home directory and you have made it executable using  "chmod +x [script name]", 
-## 	then run the script by using "run_script [script name]"
 ## 	suggested paramenters are below to submit this script.
-##  You may need to increase these for bigger datasets
 ## 		queue: medium
-##		core: 6
-##		time limit (HH:MM:SS): 18:00:00 
-##		Memory: 12gb
+##		core: 8
+##		time limit (HH:MM:SS): 20:00:00 
+##		Memory: 16gb
 ##		
 ###############################################
 
-
 ########## Load Modules
 source /apps/profiles/modules_asax.sh.dyn
-#module load sra
-#module load fastqc/0.10.1
-#module load multiqc
+module load sra
+module load fastqc/0.10.1
+module load multiqc
+#NO TRIMMING
 #module load trimmomatic/0.39
 module load hisat2/2.2.0
 module load stringtie/2.2.1
@@ -29,8 +26,6 @@ module load python/3.10.8-zimemtc
 module load samtools
 module load bcftools
 module load gffread
-##Module gffcompare seems not to load and I think we dont use it
-#module load gffcompare
 
 # Set the stack size to unlimited
 ulimit -s unlimited
@@ -39,34 +34,30 @@ ulimit -s unlimited
 set -x
 
 ##########  Define variables and make directories
-## Replace the numbers in the brackets with Your specific information
-  ## make variable for your ASC ID so the directories are automatically made in YOUR directory
-MyID=aubclsc0324          ## Example: MyID=aubtss
+MyID=aubclsc0324
 
-WD=/scratch/$MyID/RNAseqFrog            ## Example:/scratch/$MyID/PracticeRNAseq  
+WD=/scratch/$MyID/RNAseqFrog
 OP=/scratch/$MyID/RNAseqFrog/NoTrim
 DD=$WD/RawData
 RDQ=RawDataQuality
-adapters=AdaptersToTrim_All.fa  ## This is a fasta file that has a list of adapters commonly used in NGS sequencing. 
-				## In the future, for your data, you will likely need to edit this for other projects based on how your libraries 
-				## were made to search for the correct adapters for your project
-CD=$OP/CleanData            				## Example:/scratch/$MyID/PracticeRNAseq/CleanData   #   *** This is where the cleaned paired files are located from the last script
+#adapters=TruSeq3-PE-2.fa		#specific adapter file for illumina in Trimmomatic
+CD=$OP/CleanData
 PCQ=PostCleanQualityNoTrim
-REFD=$WD/XTropicalisRefGenome          ## Example:/scratch/$MyID/PracticeRNAseq/DaphniaRefGenome    # this directory contains the indexed reference genome for the garter snake
-MAPD=$OP/Map_HiSat2           			## Example:/scratch/$MyID/PracticeRNAseq/Map_HiSat2      #
-COUNTSD=/$OP/Counts_StringTie       ## Example:/scratch/$MyID/PracticeRNAseq/Counts_StringTie
-RESULTSD=/home/$MyID/PracticeRNAseq_FullNoTrim/Counts_H_S_2024      ## Example:/home/aubtss/PracticeRNAseq/Counts_H_S
-REF=UCB_Xtro_10.0                  ## This is what the "easy name" will be for the genome reference
+REFD=$WD/XTropicalisRefGenome		#folder with mapped reference genome
+MAPD=$OP/Map_HiSat2
+COUNTSD=/$OP/Counts_StringTie
+RESULTSD=/home/$MyID/PracticeRNAseq_FullNoTrim/Counts_H_S_2024
+REF=UCB_Xtro_10.0			#name of the genome in NCBI
 
 
 
 ##  make the directories in SCRATCH for holding the raw data 
 ## -p tells it to make any upper level directories that are not there.
-#mkdir -p ${WD}
-#mkdir -p ${DD}
-#mkdir -p ${OP}
+mkdir -p ${WD}
+mkdir -p ${DD}
+mkdir -p ${OP}
 ## move to the Data Directory
-#cd ${DD}
+cd ${DD}
 
 ##########  Download data files from NCBI: SRA using the Run IDs
   ### from SRA use the SRA tool kit - see NCBI website https://www.ncbi.nlm.nih.gov/sra/docs/sradownload/
@@ -80,51 +71,40 @@ REF=UCB_Xtro_10.0                  ## This is what the "easy name" will be for t
 ## These samples are from Bioproject PRJDB12187. An experiment on Buergeria otai, 3 samples heat stress (DRR316901, DRR316903 & DRR316904), 3 samples control (DRR316902, DRR316905 & DRR316906)
 ## https://www.ncbi.nlm.nih.gov/bioproject/PRJDB12187
 
-#vdb-config --interactive
-#fastq-dump -F --split-files DRR316901
+vdb-config --interactive
+fastq-dump -F --split-files DRR316901
 
-#fasterq-dump --split-files DRR316901
-#fasterq-dump --split-files DRR316902
-#fasterq-dump --split-files DRR316903
-#fasterq-dump --split-files DRR316904
-#fasterq-dump --split-files DRR316905
-#fasterq-dump --split-files DRR316906
-
+fasterq-dump --split-files DRR316901
+fasterq-dump --split-files DRR316902
+fasterq-dump --split-files DRR316903
+fasterq-dump --split-files DRR316904
+fasterq-dump --split-files DRR316905
+fasterq-dump --split-files DRR316906
 
 ##### Extra ####
 ## If you are downloading data from a sequencing company instead of NCBI, using wget for example, then calculate the md5sum values of all the files in the folder (./*), and read into a text file.
 ## then you can compare the values in this file with the ones provided by the company.
-#md5sum ./* > md5sum.txt
-
-
-##### Extra ####
-## If you data comes with multiple R1 and R2 files per individual. You can contatenate them together using "cat" before running FASTQC
-## see examples below for one file. You will probably want to use a loop to process through all the files.
-#cat SRR6819014*_R1_*.fastq.gz > SRR6819014_All_R1.fastq.gz
-#cat SRR6819014*_R2_*.fastq.gz > SRR6819014_All_R2.fastq.gz
-
+md5sum ./* > md5sum.txt
 
 ############## FASTQC to assess quality of the sequence data
 ## FastQC: run on each of the data files that have 'All' to check the quality of the data
 ## The output from this analysis is a folder of results and a zipped file of results and a .html file for each sample
-#mkdir -p ${WD}/${RDQ}
-#fastqc *.fastq --outdir=${WD}/${RDQ}
+mkdir -p ${WD}/${RDQ}
+fastqc *.fastq --outdir=${WD}/${RDQ}
 
 ##### MultiQC to summarized the fastqc results!
-#cd ${WD}/${RDQ}
-#multiqc ${WD}/${RDQ}
+cd ${WD}/${RDQ}
+multiqc ${WD}/${RDQ}
 
 #######  Tarball the directory containing the FASTQC and MultiQC results so we can easily bring it back to our computer to evaluate.
-#tar cvzf ${RDQ}.tar.gz  ${WD}/${RDQ}/*
+tar cvzf ${RDQ}.tar.gz  ${WD}/${RDQ}/*
 ## when finished use scp or rsync to bring the tarballed .gz results file to your computer and open the .html file to evaluate the quality of your raw data.
-
 
 #######
 ################****************** Step 2  Cleaning the data with Trimmomatic ###################################
 #######
 ######Fabres
 ######Option1: No Trimming
-
 
 ## make the directories to hold the Cleaned Data files, and the directory to hold the results for assessing quality of the cleaned data.
 #mkdir -p ${CD}
@@ -190,7 +170,7 @@ REF=UCB_Xtro_10.0                  ## This is what the "easy name" will be for t
 
 
 ## Make the directories and all subdirectories defined by the variables above
-#mkdir -p $REFD
+mkdir -p $REFD
 mkdir -p $MAPD
 mkdir -p $COUNTSD
 mkdir -p $RESULTSD
@@ -198,16 +178,17 @@ mkdir -p $RESULTSD
 ##################  Prepare the Reference Index for mapping with HiSat2   #############################
 cd $REFD
 ### Copy the reference genome (.fasta) and the annotation file (.gff3) to this REFD directory
+##Identify where your reference genome is
 #scp /home/${MyID}/XTropicalis/${REF}.fna .
 #scp /home/${MyID}/XTropicalis/${REF}.gff .
 
 ###  Identify exons and splice sites on the reference genome
-#gffread ${REF}.gff -T -o ${REF}.gtf               ## gffread converts the annotation file from .gff3 to .gft formate for HiSat2 to use.
-#hisat2_extract_splice_sites.py ${REF}.gtf > ${REF}.ss
-#hisat2_extract_exons.py ${REF}.gtf > ${REF}.exon
+gffread ${REF}.gff -T -o ${REF}.gtf               ## gffread converts the annotation file from .gff3 or .gff to .gft formate for HiSat2 to use.
+hisat2_extract_splice_sites.py ${REF}.gtf > ${REF}.ss
+hisat2_extract_exons.py ${REF}.gtf > ${REF}.exon
 
 #### Create a HISAT2 index for the reference genome. NOTE every mapping program will need to build a its own index.
-#hisat2-build --ss ${REF}.ss --exon ${REF}.exon ${REF}.fasta XTropicalis_index
+hisat2-build --ss ${REF}.ss --exon ${REF}.exon ${REF}.fasta XTropicalis_index
 
 ########################  Map and Count the Data using HiSAT2 and StringTie  ########################
 
