@@ -1,5 +1,10 @@
 #! /bin/bash
 
+##Script written by Alejandra Fabres
+##PhD Stundent
+##Department of Biological Science
+##April 26th 2024
+
 ##This scrip is a modified verision of a default script provided by Dr. Tonia Schwartz for the Functional Genomics Class of Spring 2024
 ######### Script for analyzing data without cleaning and trimming ############
 ## Objective: Download raw read from NCBI and run the full RNAseq pipeline without trimming
