@@ -1,6 +1,7 @@
 #! /bin/bash
 
-######### FunGen Course Instructions ###########
+######### 
+## Author: Alex Swystun, modified script from Dr. Tonia Schwartz, Auburn University.
 ## Purpose: The purpose of this script is to run the full RNAseq pipeline
 ## For running the script on the Alabama Super Computer.
 ##	For more information: https://hpcdocs.asc.edu/content/slurm-queue-system
