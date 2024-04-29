@@ -6,7 +6,7 @@
 ##	For more information: https://hpcdocs.asc.edu/content/slurm-queue-system
 ## 	After you have this script in your home directory and you have made it executable using  "chmod +x [script name]", 
 ## 	then run the script by using "run_script [script name]"
-## 	suggested paramenters are below to submit this script.
+## 	suggested parameters are below to submit this script.
 ##  You may need to increase these for bigger datasets
 ## 		queue: medium
 ##		core: 6
@@ -211,7 +211,7 @@ cd ${MAPD}
 mv ${CD}/list  . 
 
   
-	######################  Step 3b  Counting  		################
+*********##This step was modified in the default pipeline to index the transcriptome using bowtie2******************
 
 	# Step 1: Index the reference transcriptome
 bowtie2-build Trinity.fasta Trinity_index  #$BOWTIE-build $TRANSCRIPTOME $BOWTIE_INDEX
