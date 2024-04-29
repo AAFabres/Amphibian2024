@@ -1,0 +1,257 @@
+#! /bin/bash
+
+######### FunGen Course Instructions ############
+## Purpose: The purpose of this script is to run the full RNAseq pipeline
+## For running the script on the Alabama Super Computer.
+##	For more information: https://hpcdocs.asc.edu/content/slurm-queue-system
+## 	After you have this script in your home directory and you have made it executable using  "chmod +x [script name]", 
+## 	then run the script by using "run_script [script name]"
+## 	suggested paramenters are below to submit this script.
+##  You may need to increase these for bigger datasets
+## 		queue: medium
+##		core: 6
+##		time limit (HH:MM:SS): 18:00:00 
+##		Memory: 12gb
+##		
+###############################################
+
+
+########## Load Modules
+source /apps/profiles/modules_asax.sh.dyn
+module load sra
+module load fastqc/0.10.1
+module load multiqc
+module load trimmomatic/0.39
+module load hisat2/2.2.0
+module load stringtie/2.2.1
+module load gcc/9.4.0
+module load python/3.10.8-zimemtc
+module load samtools
+module load bcftools
+module load gffread
+module load bowtie2/2.5.1
+#module load gffcompare
+
+#  Set the stack size to unlimited
+ulimit -s unlimited
+
+# Turn echo on so all commands are echoed in the output log
+set -x
+
+
+##########  Define variables and make directories
+## Replace the numbers in the brackets with Your specific information
+  ## make variable for your ASC ID so the directories are automatically made in YOUR directory
+MyID=aubclsc0309          ## Example: MyID=aubtss
+
+
+WD=/scratch/$MyID/Trinity/2Trinity            ## Example:/scratch/$MyID/PracticeRNAseq  
+RD=/scratch/aubclsc0309/RawData
+RDQ=RawDataQuality
+## This is a fasta file that has a list of adapters commonly used in NGS sequencing. 
+adapters=TruSeq-PE-2.fa				## In the future, for your data, you will likely need to edit this for other projects based on how your libraries 
+				## were made to search for the correct adapters for your project
+CD=/$WD/CleanData            				## Example:/scratch/$MyID/PracticeRNAseq/CleanData   #   *** This is where the cleaned paired files are located from the last script
+PCQ=PostCleanQuality
+PCQ=/scratch/aubclsc0309/Trinity/2Trinity/PostCleanQuality
+REFD=/scratch/aubclsc0309/Trinity/amphibiangenome          ## Example:/scratch/$MyID/PracticeRNAseq/DaphniaRefGenome    # this directory contains the indexed reference genome for the garter snake
+MAPD=$WD/Map_HiSat2           			## Example:/scratch/$MyID/PracticeRNAseq/Map_HiSat2      #
+COUNTSD=/$WD/Counts_StringTie       ## Example:/scratch/$MyID/PracticeRNAseq/Counts_StringTie
+RESULTSD=/$WD/Counts_H_S_2024      ## Example:/home/aubtss/PracticeRNAseq/Counts_H_S
+#REF=DaphniaPulex_RefGenome_PA42_v3.0                  ## This is what the "easy name" will be for the genome reference
+#REF=GCF_017654675.1_Xenopus_laevis_v10.1_genomic.fna
+REF=Trinity
+
+##  make the directories in SCRATCH for holding the raw data 
+## -p tells it to make any upper level directories that are not there.
+mkdir -p ${WD}
+mkdir -p ${RD}
+## move to the Data Directory
+cd ${RD}
+
+##########  Download data files from NCBI: SRA using the Run IDs
+  ### from SRA use the SRA tool kit - see NCBI website https://www.ncbi.nlm.nih.gov/sra/docs/sradownload/
+	## this downloads the SRA file and converts to fastq
+		## for fasterq-dump
+		## or for fastq-dump 
+			## 	-F 	Defline contains only original sequence name.
+			## 	-I 	Append read id after spot id as 'accession.spot.readid' on defline.
+		## splits the files into R1 and R2 (forward reads, reverse reads)
+
+## These samples are from Bioproject PRJNA437447. An experiment on Daphnia pulex, 5 samples on ad lib feed, 5 samples on caloric restriction diet
+## https://www.ncbi.nlm.nih.gov/bioproject?LinkName=sra_bioproject&from_uid=5206312
+## For class only do the 6 that you are assigned, delete the other 4 from this list
+
+vdb-config --interactive
+#fastq-dump -F --split-files SRR6819023
+
+
+#fasterq-dump DRR316901
+#fasterq-dump DRR316902
+#fasterq-dump DRR316903
+#fasterq-dump DRR316904
+#fasterq-dump DRR316905
+#fasterq-dump DRR316906
+
+
+##### Extra ####
+## If you are downloading data from a sequencing company instead of NCBI, using wget for example, then calculate the md5sum values of all the files in the folder (./*), and read into a text file.
+## then you can compare the values in this file with the ones provided by the company.
+#md5sum ./* > md5sum.txt
+
+##### Extra ####
+## If you data comes with multiple R1 and R2 files per individual. You can contatenate them together using "cat" before running FASTQC
+## see examples below for one file. You will probably want to use a loop to process through all the files.
+#cat SRR6819014*_R1_*.fastq.gz > SRR6819014_All_R1.fastq.gz
+#cat SRR6819014*_R2_*.fastq.gz > SRR6819014_All_R2.fastq.gz
+
+
+############## FASTQC to assess quality of the sequence data
+## FastQC: run on each of the data files that have 'All' to check the quality of the data
+## The output from this analysis is a folder of results and a zipped file of results and a .html file for each sample
+mkdir ${WD}/${RDQ}
+fastqc *.fastq --outdir=${WD}/${RDQ}
+
+##### MultiQC to summarized the fastqc results!
+cd ${WD}/${RDQ}
+multiqc ${WD}/${RDQ}
+
+#######  Tarball the directory containing the FASTQC and MultiQC results so we can easily bring it back to our computer to evaluate.
+tar cvzf ${RDQ}.tar.gz  ${WD}/${RDQ}/*
+## when finished use scp or rsync to bring the tarballed .gz results file to your computer and open the .html file to evaluate the quality of your raw data.
+
+
+#######
+################****************** Step 2  Cleaning the data with Trimmomatic ###################################
+#######
+
+
+## make the directories to hold the Cleaned Data files, and the directory to hold the results for assessing quality of the cleaned data.
+mkdir ${CD}
+mkdir ${WD}/${PCQ}
+
+
+## Move to Raw Data Directory
+cd ${RD}
+
+### Make list of file names to Trim
+        ## this line is a set of piped (|) commands
+        ## ls means make a list, 
+        ## grep means grab all the file names that end in ".fastq", 
+        ## cut that name into elements every where you see "_" and keep the first element (-f 1)
+        ## sort the list and keep only the unique names and put it into a file named "list"
+ls | grep ".fastq" |cut -d "_" -f 1 | sort | uniq > list
+
+### Copy over the list of Sequencing Adapters that we want Trimmomatic to look for (along with its default adapters)
+        ## CHECK: You may need to edit this path for the file that is in the class_shared directory from your account.
+cp /scratch/${MyID}/amphibiangenome/AdaptersToTrim_All.fa . 
+
+### Run a while loop to process through the names in the list and Trim them with the Trimmomatic Code
+while read i
+do
+
+        ### Run Trimmomatic in paired end (PE) mode with 6 threads using phred 33 quality score format. 
+        ## STOP & DISCUSS: Check out the trimmomatic documentation to understand the parameters in line 77
+	       java -jar /apps/x86-64/apps/spack_0.19.1/spack/opt/spack/linux-rocky8-zen3/gcc-11.3.0/trimmomatic-0.39-iu723m2xenra563gozbob6ansjnxmnfp/bin/trimmomatic-0.39.jar   \
+					PE -threads 6 -phred33 \
+        	"$i"_1.fastq "$i"_2.fastq  \
+       	 ${CD}/"$i"_1_paired.fastq ${CD}/"$i"_1_unpaired.fastq  ${CD}/"$i"_2_paired.fastq ${CD}/"$i"_2_unpaired.fastq \
+       	 TruSeq3-PE-2.fa:Trim_All.fa:2:35:10 HEADCROP:10 LEADING:30 TRAILING:30 SLIDINGWINDOW:6:30 MINLEN:36
+        
+                ## Trim read for quality when quality drops below Q30 and remove sequences shorter than 36 bp
+                ## PE for paired end phred-score-type  R1-Infile   R2-Infile  R1-Paired-outfile R1-unpaired-outfile R-Paired-outfile R2-unpaired-outfile  Trimming paramenter
+                ## MINLEN:<length> #length: Specifies the minimum length of reads to be kept.
+                ## SLIDINGWINDOW:<windowSize>:<requiredQuality>  #windowSize: specifies the number of bases to average across  
+                ## requiredQuality: specifies the average quality required.
+
+	############## FASTQC to assess quality of the Cleaned sequence data
+	## FastQC: run on each of the data files that have 'All' to check the quality of the data
+	## The output from this analysis is a folder of results and a zipped file of results
+
+fastqc ${CD}/"$i"_1_paired.fastq --outdir=${WD}/${PCQ}
+fastqc ${CD}/"$i"_2_paired.fastq --outdir=${WD}/${PCQ}
+
+
+done<list			# This is the end of the loop
+
+################## Run MultiQC to summarize the fastqc results
+### move to the directory with the cleaned data
+cd ${WD}/${PCQ}
+multiqc ${WD}/${PCQ}
+
+########################  Now compress your results files from the Quality Assessment by FastQC 
+#######  Tarball the directory containing the FASTQC results so we can easily bring it back to our computer to evaluate.
+tar cvzf ${PCQ}.tar.gz ${WD}/${PCQ}/*
+
+
+#######
+############################*********** Step 3 Mapping and Counting ************###########################
+#######
+
+
+## Make the directories and all subdirectories defined by the variables above
+mkdir -p $REFD
+mkdir -p $MAPD
+mkdir -p $COUNTSD
+mkdir -p $RESULTSD
+
+########################  Map and Count the Data using HiSAT2 and StringTie  ########################
+
+# Move to the data directory
+cd ${CD}  #### This is where our clean paired reads are located.
+
+## Create list of fastq files to map.    Example file format of your cleaned reads file names: SRR629651_1_paired.fastq SRR629651_2_paired.fastq
+## grab all fastq files, cut on the underscore, use only the first of the cuts, sort, use unique put in list
+ls | grep ".fastq" |cut -d "_" -f 1| sort | uniq > list    #should list Example: SRR629651
+
+## Move to the directory for mapping
+cd ${MAPD}
+
+## move the list of unique ids from the original files to map
+mv ${CD}/list  . 
+
+  
+	######################  Step 3b  Counting  		################
+
+	# Step 1: Index the reference transcriptome
+bowtie2-build Trinity.fasta Trinity_index  #$BOWTIE-build $TRANSCRIPTOME $BOWTIE_INDEX
+
+# Step 2: Align the sequences to the reference transcriptome
+bowtie2 -x /scratch/aubclsc0309/Trinity/amphibiangenome/Trinity_index/ -1 "${CD}"/"$i"_1_paired.fastq -2 "${CD}"/"$i"_2_paired.fastq -S "$i".sam
+bowtie2 - /$WD/amphibiangenome/Trinity_index -U -1 "${CD}"/"$i"_1_paired.fastq  -2 "${CD}"/"$i"_2_paired.fastq -S "$i".sam
+
+# Step 3: Convert SAM to BAM and sort
+
+while read i; do
+  samtools view -@ 6 -bS "$i".sam > "$i".bam;
+  samtools sort -@ 6 "$i".bam -o "$i"_sorted.bam;
+  samtools flagstat "$i"_sorted.bam > "$i"_Stats.txt;
+  mkdir "${COUNTSD}"/"$i";
+  stringtie -p 6 -e -B -G "${REFD}"/genomic.gtf -o "${COUNTSD}"/"$i"/"$i".gtf -l "$i" "${MAPD}"/"$i"_sorted.bam;
+done < list
+
+
+##for BAM_FILE in "$BAM_DIR"/*_sorted.bam; do FILENAME=$(basename "$BAM_FILE" _sorted.bam); OUTPUT_GTF="$OUTPUT_DIR/${FILENAME}.gtf"; stringtie -p "$THREADS" -o "$OUTPUT_GTF" "$BAM_FILE"; done
+
+Example
+##stringtie -p 6 -e -B -G /scratch/aubclsc0309/Trinity/amphibiangenome/stringtie_merged.gtf -o /scratch/aubclsc0309/Trinity/2Trinity/Counts_StringTie/DRR316901/DRR316901.gtf -l DRR316901 /scratch/aubclsc030
+9/Trinity/2Trinity/Map_HiSat2/DRR316901_sorted.bam
+
+
+#####################  Copy Results to home Directory.  These will be the files you want to bring back to your computer.
+### these are your stats files from Samtools
+cp *.txt ${RESULTSD}
+
+### The prepDE.py is a python script that converts the files in your ballgown folder to a count matrix that can be used for other programs like DESeq2. 
+ ## Move to the counts directory
+cd ${COUNTSD}
+ ## run the python script prepDE.phy to prepare you data for downstream analysis.
+cp /home/aubclsc0309/class_shared/prepDE.py3 .
+
+ prepDE.py3 -i ${COUNTSD}
+
+### copy the final results files (the count matricies that are .cvs) to your home directory. 
+cp *.csv ${RESULTSD}
+## move these results files to your personal computer for downstream statistical analyses in R studio.
+
+
