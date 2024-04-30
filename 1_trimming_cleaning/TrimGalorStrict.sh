@@ -1,24 +1,30 @@
 #! /bin/bash
 
+##Script written by Alejandra Fabres
+##PhD Stundent
+##Department of Biological Science
+##April 26th 2024
+
+##This scrip is a modified verision of a default script provided by Dr. Tonia Schwartz for the Functional Genomics Class of Spring 2024
+
 ######### FunGen Course Instructions ############
+######### Script for analyzing data trimming with a strict configuration in Trim Galore ############
 ## Purpose: The purpose of this script is to run the full RNAseq pipeline
-## For running the script on the Alabama Super Computer.
+## Objective: Download raw read from NCBI and run the full RNAseq pipeline strict trimming with Trim Galore
+## This script is ment to run on the Alabama Super Computer.
 ##	For more information: https://hpcdocs.asc.edu/content/slurm-queue-system
-## 	After you have this script in your home directory and you have made it executable using  "chmod +x [script name]", 
-## 	then run the script by using "run_script [script name]"
 ## 	suggested paramenters are below to submit this script.
-##  You may need to increase these for bigger datasets
 ## 		queue: medium
-##		core: 6
-##		time limit (HH:MM:SS): 18:00:00 
-##		Memory: 12gb
+##		core: 8
+##		time limit (HH:MM:SS): 20:00:00 
+##		Memory: 16gb
 ##		
 ###############################################
 
 
 ########## Load Modules
 source /apps/profiles/modules_asax.sh.dyn
-#module load sra
+module load sra
 module load fastqc/0.10.1
 module load multiqc
 module load trimgalore/0.6.7
@@ -47,7 +53,7 @@ MyID=aubclsc0324         ## Example: MyID=aubtss
 WD=/scratch/$MyID/RNAseqFrog            ## Example:/scratch/$MyID/PracticeRNAseq  
 OP=/scratch/$MyID/RNAseqFrog/StrictGalore
 DD=$WD/RawData
-#RDQ=RawDataQuality
+RDQ=RawDataQuality
 #adapters=TruSeq3-PE-2.fa  ## This is a fasta file that has a list of adapters commonly used in NGS sequencing. 
 				## In the future, for your data, you will likely need to edit this for other projects based on how your libraries 
 				## were made to search for the correct adapters for your project
@@ -63,10 +69,10 @@ REF=UCB_Xtro_10.0                  ## This is what the "easy name" will be for t
 
 ##  make the directories in SCRATCH for holding the raw data 
 ## -p tells it to make any upper level directories that are not there.
-#mkdir -p ${WD}
-#mkdir -p ${DD}
+mkdir -p ${WD}
+mkdir -p ${DD}
 ## move to the Data Directory
-#cd ${DD}
+cd ${DD}
 
 ##########  Download data files from NCBI: SRA using the Run IDs
   ### from SRA use the SRA tool kit - see NCBI website https://www.ncbi.nlm.nih.gov/sra/docs/sradownload/
@@ -77,53 +83,46 @@ REF=UCB_Xtro_10.0                  ## This is what the "easy name" will be for t
 			## 	-I 	Append read id after spot id as 'accession.spot.readid' on defline.
 		## splits the files into R1 and R2 (forward reads, reverse reads)
 
-## These samples are from Bioproject PRJNA437447. An experiment on Daphnia pulex, 5 samples on ad lib feed, 5 samples on caloric restriction diet
-## https://www.ncbi.nlm.nih.gov/bioproject?LinkName=sra_bioproject&from_uid=5206312
-## For class only do the 6 that you are assigned, delete the other 4 from this list
+## These samples are from Bioproject PRJDB12187. An experiment on Buergeria otai, 3 samples heat stress (DRR316901, DRR316903 & DRR316904), 3 samples control (DRR316902, DRR316905 & DRR316906)
+## https://www.ncbi.nlm.nih.gov/bioproject/PRJDB12187
 
-#vdb-config --interactive
+vdb-config --interactive
 #fastq-dump -F --split-files DRR316901
 
-#fasterq-dump DRR316901
-#fasterq-dump DRR316902
-#fasterq-dump DRR316903
-#fasterq-dump DRR316904
-#fasterq-dump DRR316905
-#fasterq-dump DRR316906
+fasterq-dump DRR316901
+fasterq-dump DRR316902
+fasterq-dump DRR316903
+fasterq-dump DRR316904
+fasterq-dump DRR316905
+fasterq-dump DRR316906
 
 
 
 ##### Extra ####
 ## If you are downloading data from a sequencing company instead of NCBI, using wget for example, then calculate the md5sum values of all the files in the folder (./*), and read into a text file.
 ## then you can compare the values in this file with the ones provided by the company.
-#md5sum ./* > md5sum.txt
-
-##### Extra ####
-## If you data comes with multiple R1 and R2 files per individual. You can contatenate them together using "cat" before running FASTQC
-## see examples below for one file. You will probably want to use a loop to process through all the files.
-#cat SRR6819014*_R1_*.fastq.gz > SRR6819014_All_R1.fastq.gz
-#cat SRR6819014*_R2_*.fastq.gz > SRR6819014_All_R2.fastq.gz
+md5sum ./* > md5sum.txt
 
 
 ############## FASTQC to assess quality of the sequence data
 ## FastQC: run on each of the data files that have 'All' to check the quality of the data
 ## The output from this analysis is a folder of results and a zipped file of results and a .html file for each sample
-#mkdir ${WD}/${RDQ}
-#fastqc *.fastq --outdir=${WD}/${RDQ}
+mkdir ${WD}/${RDQ}
+fastqc *.fastq --outdir=${WD}/${RDQ}
 
 ##### MultiQC to summarized the fastqc results!
-#cd ${WD}/${RDQ}
-#multiqc ${WD}/${RDQ}
+cd ${WD}/${RDQ}
+multiqc ${WD}/${RDQ}
 
 #######  Tarball the directory containing the FASTQC and MultiQC results so we can easily bring it back to our computer to evaluate.
-#tar cvzf ${RDQ}.tar.gz  ${WD}/${RDQ}/*
+tar cvzf ${RDQ}.tar.gz  ${WD}/${RDQ}/*
 ## when finished use scp or rsync to bring the tarballed .gz results file to your computer and open the .html file to evaluate the quality of your raw data.
 
 
 #######
 ################****************** Step 2  Cleaning the data with Trim Galore! ###################################
-#######
-#### Option strict
+#######Fabres
+####Option: strict
 
 
 ## make the directories to hold the Cleaned Data files, and the directory to hold the results for assessing quality of the cleaned data.
@@ -156,12 +155,13 @@ do
 trim_galore --paired --q 30 --illumina --three_prime_clip_R1 10 --three_prime_clip_R2 10 --length 36 "$i"_1.fastq "$i"_2.fastq -o ${CD}/
 
 # --paired is to tell the program that your using paired data
-# --q this is the Qthred score that will filter data below Qphred scroe 20, which is the default non-strict model
-# --ilumina only filter for 'AGATCGGAAGAGC' this adapter	#Our data is illumina
+# --q this is the Qthred score that will filter data below Qphred score of 30
+# --ilumina only filter for illumina adaprtes 'AGATCGGAAGAGC' 	#Our data is illumina
 # not putting an adapter option it give me that the adapter is 'CTGTCTCTTATA'
+# --three_prime_clip_R1 and --three_prime_clip_R2 does a head crop of both reads
+# --lenght filters read with a lenght less than 36
 # -o where the output files should go
 
-        
                 ## Trim read for quality when quality drops below Q20
                 ## output file 1: DRR316901_1_val_1.fq
 		## output file 2: DRR316901_2_val_2.fq 
@@ -192,7 +192,7 @@ tar cvzf ${PCQ}.tar.gz ${OP}/${PCQ}/*
 
 
 ## Make the directories and all subdirectories defined by the variables above
-#mkdir -p $REFD
+mkdir -p $REFD
 mkdir -p $MAPD
 mkdir -p $COUNTSD
 mkdir -p $RESULTSD
