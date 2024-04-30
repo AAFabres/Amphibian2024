@@ -1,24 +1,27 @@
 #! /bin/bash
 
-######### FunGen Course Instructions ############
-## Purpose: The purpose of this script is to run the full RNAseq pipeline
-## For running the script on the Alabama Super Computer.
+##Script written by Alejandra Fabres
+##PhD Stundent
+##Department of Biological Science
+##April 26th 2024
+
+##This scrip is a modified verision of a default script provided by Dr. Tonia Schwartz for the Functional Genomics Class of Spring 2024
+######### Script for analyzing data with a strict configuration of trimmomatic ############
+## Objective: Download raw read from NCBI and run the full RNAseq pipeline with strict configuration Trimmomatic
+## This script is ment to run on the Alabama Super Computer.
 ##	For more information: https://hpcdocs.asc.edu/content/slurm-queue-system
-## 	After you have this script in your home directory and you have made it executable using  "chmod +x [script name]", 
-## 	then run the script by using "run_script [script name]"
 ## 	suggested paramenters are below to submit this script.
-##  You may need to increase these for bigger datasets
 ## 		queue: medium
-##		core: 6
-##		time limit (HH:MM:SS): 18:00:00 
-##		Memory: 12gb
+##		core: 8
+##		time limit (HH:MM:SS): 20:00:00 
+##		Memory: 16gb
 ##		
 ###############################################
 
 
 ########## Load Modules
 source /apps/profiles/modules_asax.sh.dyn
-#module load sra
+module load sra
 module load fastqc/0.10.1
 module load multiqc
 module load trimmomatic/0.39
@@ -39,34 +42,26 @@ set -x
 
 
 ##########  Define variables and make directories
-## Replace the numbers in the brackets with Your specific information
-  ## make variable for your ASC ID so the directories are automatically made in YOUR directory
-MyID=aubclsc0324         ## Example: MyID=aubtss
-
-
-WD=/scratch/$MyID/RNAseqFrog            ## Example:/scratch/$MyID/PracticeRNAseq  
+MyID=aubclsc0324
+WD=/scratch/$MyID/RNAseqFrog
 OP=/scratch/$MyID/RNAseqFrog/StrictTrim
 DD=$WD/RawData
 RDQ=RawDataQuality
 adapters=TruSeq3-PE-2.fa  ## This is a fasta file that has a list of adapters commonly used in NGS sequencing. 
-				## In the future, for your data, you will likely need to edit this for other projects based on how your libraries 
-				## were made to search for the correct adapters for your project
-CD=$OP/CleanData            				## Example:/scratch/$MyID/PracticeRNAseq/CleanData   #   *** This is where the cleaned paired files are located from the last script
+CD=$OP/CleanData
 PCQ=PostCleanQualityStrictTrim
-REFD=$WD/XTropicalisRefGenome          ## Example:/scratch/$MyID/PracticeRNAseq/DaphniaRefGenome    # this directory contains the indexed reference genome for the garter snake
-MAPD=$OP/Map_HiSat2           			## Example:/scratch/$MyID/PracticeRNAseq/Map_HiSat2      #
-COUNTSD=/$OP/Counts_StringTie       ## Example:/scratch/$MyID/PracticeRNAseq/Counts_StringTie
-RESULTSD=/home/$MyID/PracticeRNAseq_FullStrictTrim/Counts_H_S_2024      ## Example:/home/aubtss/PracticeRNAseq/Counts_H_S
-REF=UCB_Xtro_10.0                  ## This is what the "easy name" will be for the genome reference
-
-
+REFD=$WD/XTropicalisRefGenome 
+MAPD=$OP/Map_HiSat2           
+COUNTSD=/$OP/Counts_StringTie 
+RESULTSD=/home/$MyID/PracticeRNAseq_FullStrictTrim/Counts_H_S_2024
+REF=UCB_Xtro_10.0
 
 ##  make the directories in SCRATCH for holding the raw data 
 ## -p tells it to make any upper level directories that are not there.
-#mkdir -p ${WD}
-#mkdir -p ${DD}
+mkdir -p ${WD}
+mkdir -p ${DD}
 ## move to the Data Directory
-#cd ${DD}
+cd ${DD}
 
 ##########  Download data files from NCBI: SRA using the Run IDs
   ### from SRA use the SRA tool kit - see NCBI website https://www.ncbi.nlm.nih.gov/sra/docs/sradownload/
@@ -77,52 +72,43 @@ REF=UCB_Xtro_10.0                  ## This is what the "easy name" will be for t
 			## 	-I 	Append read id after spot id as 'accession.spot.readid' on defline.
 		## splits the files into R1 and R2 (forward reads, reverse reads)
 
-## These samples are from Bioproject PRJNA437447. An experiment on Daphnia pulex, 5 samples on ad lib feed, 5 samples on caloric restriction diet
-## https://www.ncbi.nlm.nih.gov/bioproject?LinkName=sra_bioproject&from_uid=5206312
-## For class only do the 6 that you are assigned, delete the other 4 from this list
+## These samples are from Bioproject PRJDB12187. An experiment on Buergeria otai, 3 samples heat stress (DRR316901, DRR316903 & DRR316904), 3 samples control (DRR316902, DRR316905 & DRR316906)
+## https://www.ncbi.nlm.nih.gov/bioproject/PRJDB12187
 
-#vdb-config --interactive
+vdb-config --interactive
 #fastq-dump -F --split-files DRR316901
 
-#fasterq-dump DRR316901
-#fasterq-dump DRR316902
-#fasterq-dump DRR316903
-#fasterq-dump DRR316904
-#fasterq-dump DRR316905
-#fasterq-dump DRR316906
-
-
+fasterq-dump DRR316901
+fasterq-dump DRR316902
+fasterq-dump DRR316903
+fasterq-dump DRR316904
+fasterq-dump DRR316905
+fasterq-dump DRR316906
 
 ##### Extra ####
 ## If you are downloading data from a sequencing company instead of NCBI, using wget for example, then calculate the md5sum values of all the files in the folder (./*), and read into a text file.
 ## then you can compare the values in this file with the ones provided by the company.
-#md5sum ./* > md5sum.txt
-
-##### Extra ####
-## If you data comes with multiple R1 and R2 files per individual. You can contatenate them together using "cat" before running FASTQC
-## see examples below for one file. You will probably want to use a loop to process through all the files.
-#cat SRR6819014*_R1_*.fastq.gz > SRR6819014_All_R1.fastq.gz
-#cat SRR6819014*_R2_*.fastq.gz > SRR6819014_All_R2.fastq.gz
-
+md5sum ./* > md5sum.txt
 
 ############## FASTQC to assess quality of the sequence data
 ## FastQC: run on each of the data files that have 'All' to check the quality of the data
 ## The output from this analysis is a folder of results and a zipped file of results and a .html file for each sample
-#mkdir ${WD}/${RDQ}
-#fastqc *.fastq --outdir=${WD}/${RDQ}
+mkdir ${WD}/${RDQ}
+fastqc *.fastq --outdir=${WD}/${RDQ}
 
 ##### MultiQC to summarized the fastqc results!
-#cd ${WD}/${RDQ}
-#multiqc ${WD}/${RDQ}
+cd ${WD}/${RDQ}
+multiqc ${WD}/${RDQ}
 
 #######  Tarball the directory containing the FASTQC and MultiQC results so we can easily bring it back to our computer to evaluate.
-#tar cvzf ${RDQ}.tar.gz  ${WD}/${RDQ}/*
+tar cvzf ${RDQ}.tar.gz  ${WD}/${RDQ}/*
 ## when finished use scp or rsync to bring the tarballed .gz results file to your computer and open the .html file to evaluate the quality of your raw data.
-
 
 #######
 ################****************** Step 2  Cleaning the data with Trimmomatic ###################################
 #######
+#######Fabres
+#######Option: Strict Trimmomatic
 
 ###Depending on the results from the relaxed trimming I will change to a more strict parameter
 
