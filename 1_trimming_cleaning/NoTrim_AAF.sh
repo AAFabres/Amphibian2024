@@ -78,7 +78,7 @@ cd ${DD}
 ## https://www.ncbi.nlm.nih.gov/bioproject/PRJDB12187
 
 vdb-config --interactive
-fastq-dump -F --split-files DRR316901
+#fastq-dump -F --split-files DRR316901
 
 fasterq-dump --split-files DRR316901
 fasterq-dump --split-files DRR316902
